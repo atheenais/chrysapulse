@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prenons le pouls — NPS Collaborateurs · Chrysalides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --corail:#F25C3B; --corail-soft:#FBE3DB;
+  --teal:#129B92; --teal-soft:#D6EFEC;
+  --gold:#F4A93B; --encre:#1E2A32; --ardoise:#5A6B75;
+  --ligne:#E7E1D8; --fond:#FBF8F4; --carte:#FFFFFF;
+  --vert:#129B92; --jaune:#F4A93B; --rouge:#E0533B;
+  --r:18px; --shadow:0 1px 2px rgba(30,42,50,.04),0 10px 30px rgba(30,42,50,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--fond);color:var(--encre);
+  line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 80px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+header{padding:48px 0 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--corail);margin-bottom:14px}
+.eyebrow::before{content:"";width:26px;height:1.5px;background:var(--corail)}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(34px,5vw,56px);
+  line-height:1.04;letter-spacing:-.01em;margin-bottom:14px}
+h1 .accent{font-style:italic;color:var(--corail)}
+.sub{font-size:16px;color:var(--ardoise);max-width:640px}
+.sub b{color:var(--encre);font-weight:600}
+
+.controls{position:sticky;top:0;z-index:30;background:rgba(251,248,244,.86);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--ligne);padding:12px 0;margin-top:26px}
+.controls .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg-label{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ardoise)}
+.snap-select{font-family:inherit;font-size:14px;font-weight:600;color:var(--encre);background:#fff;
+  border:1px solid var(--ligne);border-radius:999px;padding:9px 14px;cursor:pointer;max-width:240px}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--ligne);border-radius:999px;padding:5px;gap:4px}
+.seg button{border:0;background:transparent;font-family:inherit;font-size:14px;font-weight:600;
+  color:var(--ardoise);padding:9px 16px;border-radius:999px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:8px}
+.seg button .dot{width:8px;height:8px;border-radius:50%}
+.seg button[data-seg="interne"] .dot{background:var(--teal)}
+.seg button[data-seg="freelance"] .dot{background:var(--corail)}
+.seg button[data-seg="all"] .dot{background:linear-gradient(90deg,var(--teal) 50%,var(--corail) 50%)}
+.seg button:hover{color:var(--encre)}
+.seg button.active{color:#fff}
+.seg button.active[data-seg="all"]{background:var(--encre)}
+.seg button.active[data-seg="interne"]{background:var(--teal)}
+.seg button.active[data-seg="freelance"]{background:var(--corail)}
+.seg button.active .dot{background:#fff!important}
+
+section{padding-top:38px}
+.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.section-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:-.01em}
+.section-head .num{font-family:'Fraunces',serif;font-size:15px;color:var(--corail);font-weight:600}
+.section-head .hint{font-size:13px;color:var(--ardoise);margin-left:auto}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi .cap{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--ardoise);text-transform:uppercase;margin-bottom:10px}
+.kpi .big{font-family:'Fraunces',serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-.02em}
+.kpi .big .unit{font-size:20px;color:var(--ardoise);font-weight:500}
+.kpi .meta{font-size:13px;color:var(--ardoise);margin-top:8px}
+.kpi.accent{background:linear-gradient(135deg,#fff,var(--teal-soft))}
+.kpi.accent2{background:linear-gradient(135deg,#fff,var(--corail-soft))}
+.enps-val{color:var(--teal)}
+.spark{display:flex;height:10px;border-radius:6px;overflow:hidden;margin-top:14px;background:#eee}
+.spark i{display:block;height:100%}
+.spark .p{background:var(--vert)}.spark .pa{background:var(--jaune)}.spark .d{background:var(--rouge)}
+.legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--ardoise);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.dims{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:10px 24px;box-shadow:var(--shadow)}
+.row{padding:18px 0;border-bottom:1px solid var(--ligne)}
+.row:last-child{border-bottom:0}
+.row .rt{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.rank{font-family:'Fraunces',serif;font-size:14px;color:var(--ardoise);width:26px;flex:none}
+.rname{font-weight:600;font-size:15px}
+.rcombo{margin-left:auto;font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-.01em}
+.rcombo .u{font-size:13px;color:var(--ardoise);font-weight:500}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:88px 1fr 42px;align-items:center;gap:12px}
+.bar .bl{font-size:12px;font-weight:600;color:var(--ardoise);display:flex;align-items:center;gap:7px}
+.bar .bl .dot{width:8px;height:8px;border-radius:50%}
+.bar.interne .bl .dot{background:var(--teal)}
+.bar.freelance .bl .dot{background:var(--corail)}
+.track{height:11px;background:#F0EBE3;border-radius:6px;overflow:hidden}
+.fill{display:block;height:100%;border-radius:6px;transform-origin:left center;animation:grow .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.bar.interne .fill{background:var(--teal)}
+.bar.freelance .fill{background:var(--corail)}
+.bar .bv{font-family:'Fraunces',serif;font-weight:600;font-size:14px;text-align:right}
+.dimmed{opacity:.32}
+
+.enps-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.enps-card{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.enps-card .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0}
+.enps-card .nm{font-weight:600;font-size:14px}
+.enps-card .sc{font-family:'Fraunces',serif;font-weight:600;font-size:18px}
+.enps-card .sc.pos{color:var(--teal)}.enps-card .sc.neg{color:var(--rouge)}.enps-card .sc.mid{color:var(--gold)}
+
+.vq{margin-bottom:26px}
+.vq h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:4px;display:flex;align-items:baseline;gap:10px}
+.vq h3 .qn{color:var(--corail);font-size:14px}
+.vq .vcount{font-size:13px;color:var(--ardoise);margin-bottom:14px}
+.vlist{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.verb{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);border-left:3px solid var(--ligne)}
+.verb.interne{border-left-color:var(--teal)}
+.verb.freelance{border-left-color:var(--corail)}
+.verb .vmeta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.chip{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.chip.interne{background:var(--teal-soft);color:#0c6e67}
+.chip.freelance{background:var(--corail-soft);color:#b8401f}
+.vscore{font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:var(--ardoise);margin-left:auto}
+.verb p{font-size:14px;color:#33424c;white-space:pre-line;line-height:1.55}
+.empty{color:var(--ardoise);font-size:14px;font-style:italic;padding:8px 0}
+
+/* ===== ÉVOLUTION ===== */
+.evo-note{background:var(--carte);border:1px dashed var(--ligne);border-radius:14px;padding:18px 20px;color:var(--ardoise);font-size:14px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.cmp-card{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+.cmp-card .cl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ardoise);margin-bottom:6px}
+.cmp-card .cd{font-size:13px;color:var(--ardoise);margin-bottom:14px}
+.cmp-card .crow{display:flex;align-items:baseline;gap:12px}
+.cmp-card .cv{font-family:'Fraunces',serif;font-weight:600;font-size:40px;line-height:1}
+.delta{font-family:'Inter',sans-serif;font-weight:700;font-size:14px;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px}
+.delta.up{background:var(--teal-soft);color:#0c6e67}
+.delta.down{background:var(--corail-soft);color:#b8401f}
+.delta.flat{background:#EFEAE2;color:var(--ardoise)}
+
+.tl-wrap{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:22px}
+.tl-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;align-items:center}
+.miniseg{display:inline-flex;background:#F6F1EA;border-radius:999px;padding:4px;gap:3px}
+.miniseg button{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--ardoise);padding:7px 14px;border-radius:999px;cursor:pointer}
+.miniseg button.active{background:#fff;color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tl-sel{font-family:inherit;font-size:13px;font-weight:600;color:var(--encre);background:#F6F1EA;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.tl-svg{width:100%;height:auto;display:block;margin-top:6px}
+.tl-svg text{font-family:'Inter',sans-serif}
+
+.evo-table-wrap{overflow-x:auto;background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);box-shadow:var(--shadow)}
+table.evo{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+table.evo th,table.evo td{padding:12px 16px;text-align:right;border-bottom:1px solid var(--ligne)}
+table.evo th:first-child,table.evo td:first-child{text-align:left;font-weight:600}
+table.evo thead th{font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--ardoise);font-weight:600}
+table.evo tbody tr:last-child td{border-bottom:0}
+table.evo .num{font-family:'Fraunces',serif;font-weight:600}
+.tag-pos{color:var(--teal)}.tag-neg{color:var(--rouge)}.tag-mid{color:var(--gold)}
+.dcell{font-weight:700;font-size:13px}
+.dcell.up{color:#0c6e67}.dcell.down{color:#b8401f}.dcell.flat{color:var(--ardoise)}
+
+/* ===== GÉRER LES CHARGEMENTS ===== */
+.manage{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+.drop{border:2px dashed var(--ligne);border-radius:14px;padding:26px;text-align:center;color:var(--ardoise);cursor:pointer;transition:.18s;background:#FCFAF7}
+.drop:hover,.drop.over{border-color:var(--corail);background:var(--corail-soft);color:var(--encre)}
+.drop b{color:var(--encre)}
+.drop .small{font-size:12px;margin-top:6px}
+.imp-form{margin-top:16px;padding:18px;border:1px solid var(--ligne);border-radius:14px;background:#FCFAF7;display:none}
+.imp-form.show{display:block}
+.imp-form .fr{display:flex;gap:14px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--ardoise);text-transform:uppercase;letter-spacing:.03em}
+.field input{font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--ligne);border-radius:10px;background:#fff}
+.preview{font-size:13px;color:var(--ardoise);margin-bottom:12px}
+.preview b{color:var(--encre)}
+.btn{font-family:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;transition:.15s}
+.btn.primary{background:var(--encre);color:#fff}
+.btn.primary:hover{background:#0f1a20}
+.btn.ghost{background:#F0EBE3;color:var(--encre)}
+.btn.ghost:hover{background:#e6dfd4}
+.btn.danger{background:transparent;color:var(--rouge);padding:6px 10px}
+.btn.danger:hover{background:var(--corail-soft)}
+.snap-list{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+.snap-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--ligne);border-radius:12px;background:#FCFAF7}
+.snap-item.cur{border-color:var(--teal);background:var(--teal-soft)}
+.snap-item .si-main{flex:1;min-width:0}
+.snap-item .si-label{font-weight:600;font-size:15px}
+.snap-item .si-meta{font-size:12px;color:var(--ardoise);margin-top:2px}
+.snap-item .si-enps{font-family:'Fraunces',serif;font-weight:600;font-size:18px}
+.badge-cur{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--teal);color:#fff;padding:3px 8px;border-radius:999px}
+.manage-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--ligne)}
+.warn{font-size:12px;color:var(--ardoise);margin-top:14px;line-height:1.5}
+.warn b{color:var(--corail)}
+
+.empty-state{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:36px;text-align:center;box-shadow:var(--shadow);margin-top:30px}
+.empty-state h3{font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px}
+.empty-state p{color:var(--ardoise);margin-bottom:18px}
+footer{margin-top:50px;padding-top:24px;border-top:1px solid var(--ligne);font-size:13px;color:var(--ardoise);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer .bf{font-family:'Fraunces',serif;color:var(--encre)}
+
+@media(max-width:820px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .enps-grid,.vlist,.cmp{grid-template-columns:1fr}
+  .bar{grid-template-columns:78px 1fr 38px}
+}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}header{padding:34px 0 18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Chrysalides · Pulse collaborateurs</span>
+    <h1>Prenons le <span class="accent">pouls</span>.</h1>
+    <p class="sub">Enquête NPS Collaborateurs. Le ressenti de l'équipe sur 10 dimensions, en vue fusionnée <b>internes + freelances</b> isolable d'un clic — et son <b>évolution dans le temps</b> au fil des chargements.</p>
+  </header>
+</div>
+
+<div class="controls">
+  <div class="wrap">
+    <div class="ctl-group">
+      <span class="seg-label">Chargement</span>
+      <select class="snap-select" id="snapSelect"></select>
+    </div>
+    <div class="ctl-group">
+      <span class="seg-label">Population</span>
+      <div class="seg" id="seg">
+        <button data-seg="all" class="active"><span class="dot"></span>Tous <em id="cAll" style="font-style:normal;opacity:.7;margin-left:4px"></em></button>
+        <button data-seg="interne"><span class="dot"></span>Internes <em id="cInt" style="font-style:normal;opacity:.7;margin-left:4px"></em></button>
+        <button data-seg="freelance"><span class="dot"></span>Freelances <em id="cFree" style="font-style:normal;opacity:.7;margin-left:4px"></em></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div id="emptyState" class="empty-state" style="display:none">
+    <h3>Aucun chargement à afficher</h3>
+    <p>Importe un nouveau résultat dans « Gérer les chargements », ou restaure le chargement initial.</p>
+    <button class="btn primary" id="restoreBtn">Restaurer le chargement initial (Juin 2026)</button>
+  </div>
+
+  <section class="dataSec">
+    <div class="section-head">
+      <h2>Vue d'ensemble</h2>
+      <span class="num" id="popTag"></span>
+      <span class="hint" id="ovHint"></span>
+    </div>
+    <div class="kpis">
+      <div class="kpi accent">
+        <div class="cap">Score global moyen</div>
+        <div class="big"><span id="kScore"></span><span class="unit">/10</span></div>
+        <div class="meta" id="kScoreMeta"></div>
+      </div>
+      <div class="kpi accent2">
+        <div class="cap">eNPS global</div>
+        <div class="big enps-val" id="kEnps"></div>
+        <div class="meta" id="kEnpsMeta">% Promoteurs − % Détracteurs</div>
+      </div>
+      <div class="kpi">
+        <div class="cap">Répondants</div>
+        <div class="big" id="kResp"></div>
+        <div class="meta" id="kRespMeta"></div>
+      </div>
+      <div class="kpi">
+        <div class="cap">Répartition des réponses</div>
+        <div class="spark"><i class="p" id="spP"></i><i class="pa" id="spPa"></i><i class="d" id="spD"></i></div>
+        <div class="legend">
+          <span><i style="background:var(--vert)"></i>Promoteurs (9-10) <b id="lP" style="color:var(--encre);margin-left:2px"></b></span>
+          <span><i style="background:var(--jaune)"></i>Passifs (7-8) <b id="lPa" style="color:var(--encre);margin-left:2px"></b></span>
+          <span><i style="background:var(--rouge)"></i>Détracteurs (0-6) <b id="lD" style="color:var(--encre);margin-left:2px"></b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dataSec">
+    <div class="section-head">
+      <h2>Les 10 dimensions, classées</h2>
+      <span class="hint">Triées par score de la population active · internes vs freelances toujours visibles</span>
+    </div>
+    <div class="dims" id="dims"></div>
+  </section>
+
+  <section class="dataSec">
+    <div class="section-head">
+      <h2>eNPS par dimension</h2>
+      <span class="hint">Promoteurs − Détracteurs sur chaque sujet · population active</span>
+    </div>
+    <div class="enps-grid" id="enpsGrid"></div>
+  </section>
+
+
+  <section class="dataSec">
+    <div class="section-head">
+      <h2>Verbatims</h2>
+      <span class="num" id="vTagUnused"></span>
+      <span class="hint">Commentaires facultatifs, retranscrits mot pour mot</span>
+    </div>
+    <div id="verbatims-host"></div>
+  </section>
+
+  <!-- ÉVOLUTION -->
+  <section id="evolution" class="dataSec">
+    <div class="section-head">
+      <h2>Évolution dans le temps</h2>
+      <span class="hint" id="evoHint"></span>
+    </div>
+
+    <div id="cmpBlock"></div>
+
+    <div class="tl-wrap">
+      <div class="tl-controls">
+        <div class="miniseg" id="tlMetric">
+          <button data-m="enps" class="active">eNPS</button>
+          <button data-m="mean">Score moyen /10</button>
+        </div>
+        <select class="tl-sel" id="tlDim"></select>
+        <span class="hint" style="margin-left:auto" id="tlHint"></span>
+      </div>
+      <div id="tlChart"></div>
+    </div>
+
+    <div class="section-head" style="margin-bottom:12px">
+      <h2 style="font-size:18px">Scores détaillés par chargement</h2>
+      <span class="hint" id="evoTblHint">eNPS par dimension · population active</span>
+    </div>
+    <div class="evo-table-wrap"><div id="evoTable"></div></div>
+  </section>
+
+  <!-- GÉRER LES CHARGEMENTS -->
+  <section id="manage">
+    <div class="section-head">
+      <h2>Gérer les chargements</h2>
+      <span class="hint">Ajouter un nouveau résultat · gérer l'historique</span>
+    </div>
+    <div class="manage">
+      <div class="drop" id="drop">
+        <div><b>Importer un nouveau chargement</b> — glisser-déposer ou cliquer</div>
+        <div class="small">Export Microsoft Forms (.xlsx) ou fichier .csv · même structure que l'enquête</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+      </div>
+      <div id="impMsg" class="preview" style="margin-top:12px"></div>
+
+      <div class="imp-form" id="impForm">
+        <div class="preview" id="impPreview"></div>
+        <div class="fr">
+          <div class="field"><label>Libellé de la période</label><input id="impLabel" type="text" placeholder="ex. Septembre 2026"></div>
+          <div class="field"><label>Date</label><input id="impDate" type="date"></div>
+          <button class="btn primary" id="impConfirm">Ajouter à l'historique</button>
+          <button class="btn ghost" id="impCancel">Annuler</button>
+        </div>
+      </div>
+
+      <div class="snap-list" id="snapList"></div>
+
+      <div class="manage-actions">
+        <button class="btn ghost" id="exportBtn">Exporter l'historique (.json)</button>
+        <button class="btn ghost" id="importHistBtn">Importer un historique (.json)</button>
+        <input type="file" id="histInput" accept=".json" style="display:none">
+        <button class="btn danger" id="resetBtn">Réinitialiser l'historique</button>
+      </div>
+      <div class="warn">
+        <b>À savoir :</b> l'historique est enregistré localement dans ce navigateur (localStorage). Il n'est pas partagé entre machines ou navigateurs.
+        Pour le sauvegarder ou le transférer, utilise « Exporter l'historique ». L'import .xlsx nécessite une connexion (chargement de la librairie de lecture) ; le .csv fonctionne hors ligne.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span id="footNote"></span>
+    <span class="bf">Chrysalides · Pulse collaborateurs</span>
+  </footer>
+</div>
+
+<script>
+const SEED = {"questions": [{"id": 1, "label": "Reconnaissance et intégration au sein du cabinet", "short": "Reconnaissance & intégration"}, {"id": 2, "label": "Équilibre vie professionnelle / vie personnelle", "short": "Équilibre pro / perso"}, {"id": 3, "label": "Liberté d'expression et d'initiative", "short": "Liberté d'expression & initiative"}, {"id": 4, "label": "Contribution au développement / rayonnement", "short": "Contribution au développement"}, {"id": 5, "label": "Accompagnement et soutien par Chrysalides", "short": "Accompagnement & soutien"}, {"id": 6, "label": "Dynamique collective et esprit d'équipe", "short": "Dynamique collective & équipe"}, {"id": 7, "label": "Pertinence de l'offre de Chrysalides pour les clients", "short": "Pertinence de l'offre clients"}, {"id": 8, "label": "Sens et valeur des missions", "short": "Sens & valeur des missions"}, {"id": 9, "label": "Ambiance et valeurs chez le client", "short": "Ambiance & valeurs chez le client"}, {"id": 10, "label": "Sentiment d'appartenance à Chrysalides", "short": "Sentiment d'appartenance"}], "respondents": [{"id": 1, "role": "freelance", "scores": {"1": 10, "2": 9, "3": 9, "4": 9, "5": 9, "6": 9, "7": 9, "8": 9, "9": 9, "10": 9}, "comments": {}}, {"id": 2, "role": "freelance", "scores": {"1": 10, "2": 10, "3": 10, "4": 4, "5": 10, "6": 10, "7": 7, "8": 10, "9": 10, "10": 6}, "comments": {}}, {"id": 3, "role": "interne", "scores": {"1": 9, "2": 10, "3": 8, "4": 9, "5": 10, "6": 7, "7": 10, "8": 8, "9": 9, "10": 8}, "comments": {"1": "Je sens qu’on me responsabilise, tout en étant autonome.", "2": "RAS", "6": "J aimerai + d’afterwork réguliers pour une plus grande cohésion et une meilleure connaissance des personnes de l’équipe"}}, {"id": 4, "role": "freelance", "scores": {"1": 8, "2": 4, "3": 7, "4": 9, "5": 7, "6": 9, "7": 7, "8": 10, "9": 10, "10": 10}, "comments": {}}, {"id": 5, "role": "freelance", "scores": {"1": 10, "2": 9, "3": 10, "4": 8, "5": 9, "6": 8, "7": 9, "8": 8, "9": 8, "10": 10}, "comments": {}}, {"id": 6, "role": "freelance", "scores": {"1": 10, "2": 7, "3": 10, "4": 10, "5": 10, "6": 10, "7": 10, "8": 10, "9": 10, "10": 10}, "comments": {"2": "Bcp de déplacement"}}, {"id": 7, "role": "freelance", "scores": {"1": 7, "2": 8, "3": 8, "4": 7, "5": 6, "6": 6, "7": 8, "8": 7, "9": 8, "10": 8}, "comments": {"1": "J’ai été très bien accueilli par les équipes !", "4": "Je me rends compte que je pourrai faire encore plus mais j’ai à cœur de donner une image positive du cabinet", "5": "Je prends ma part car je n’ai pas assez sollicité le cabinet", "6": "Je ne connais pas encore assez bien l’équipe ni ne participe aux rituels, cependant les consultants chrysalides que je croise chez les clients  n’hésite pas à partager !", "8": "La mission a beaucoup évolué et les livrables sont très orientés processus avec une casquette chef de projet, je me sens utile mais ce n’est pas ce que je préfère faire."}}, {"id": 8, "role": "freelance", "scores": {"1": 10, "2": 10, "3": 10, "4": 8, "5": 10, "6": 10, "7": 10, "8": 10, "9": 10, "10": 10}, "comments": {"1": "Au fur et à mesure de mon partenariat avec Chrysalides, mes missions évoluent, deviennent plus exigeantes, à la hauteur de mes compétences.", "2": "S'il d'ailleurs il devait y avoir une montée en puissance de ma charge de travail, ce ne serait pas pour me déplaire.", "3": "Je dispose d'un temps de paroles à la hauteur de ma présence", "4": "Je contribue a hauteur de ma distance géographique.", "5": "Accompagnement 5 etoiles", "6": "Ras"}}, {"id": 9, "role": "freelance", "scores": {"1": 5, "2": 10, "3": 8, "4": 10, "5": 10, "6": 5, "7": 10, "8": 10, "9": 8, "10": 7}, "comments": {"1": "Moins d'un an dans le cabinet en tant que freelance et 100% en mission chez le client avec beaucoup de déplacement donc il n'est pas évident de s'intégrer au collectif quand on est absent et à distance.", "6": "IDEM que l'intégration : moins d'un an dans le cabinet en tant que freelance et 100% en mission chez le client avec beaucoup de déplacement donc je ne ressens pas la dynamique collective et l'esprit d'équipe.\nCependant, le cabinet met tout en œuvre pour créer une dynamique, surtout depuis Yoobic"}}, {"id": 10, "role": "freelance", "scores": {"1": 5, "2": 8, "3": 8, "4": 5, "5": 3, "6": 4, "7": 4, "8": 9, "9": 9, "10": 4}, "comments": {}}, {"id": 11, "role": "interne", "scores": {"1": 9, "2": 7, "3": 8, "4": 8, "5": 10, "6": 9, "7": 9, "8": 10, "9": 9, "10": 10}, "comments": {"1": "Bon collectif\nTravail dans la confiance\nEsprit d'équipe\nEntraide\nFacilité et simplicité dans les échanges", "2": "Ca dépend beaucoup des périodes.\nCertaines périodes permettent un bon équilibre pro / perso, et les périodes de rush chez le client (je dirai entre 1/3 et 1/2 du temps) pas vraiment.", "3": "Pour la grande majorité des sujets oui.\nMais je pense qu'il y a des sujets (auxquels je n'ai pas encore été confrontée) que je sens plus sensible que d'autres et pour lesquels ca pourrait être plus délicat : Ne pas aimer une mission, salaire, ...", "4": "Un grand oui pour véhiculer une image de marque positive de Chrysalides.\nPour la partie développement notamment missions, je ne me sens pas assez armée/ à l'aise pour bien amener Chrysalides quand je sens un signal faible chez le client (jusqu'ou aller dans la démarche, de quelle manière, qui relancer à quelle fréquence, ...). J'ai identifié des besoins et ai proposé notre accompagnement mais ça n'a pas été concluant faute de budget chez le client.", "5": "Disponibilité de Mélissa au top, qui s'arrange toujours pour trouver un moment même si son agenda est full.\nDisponibilité aussi des collègues pour échanger un regard sur un sujet, aider sur de la méthodo,... Vraiment top.", "6": "Equipe au top\nManque de rituels (open talk pas fait depuis un moment), moments d'intelligence collective, d'inspiration, ...", "7": "En phase avec le positionnement de Chrysalides.\nOn doit aller plus loin dans la démarche (s'ouvrir à d'autres secteurs que le retail, ...) mais c'est déjà noté dans la vision 2030.", "8": "Reconnaissance de mon client qui voit ma plue value et me le dit.\nJe me sens utile, c'est vraiment appréciable !", "9": "Client très bienveillant et vraiment top.\nPerte d'un point car démarrage compliqué avec le manager, et relations qui ne se sont jamais vraiment instaurées. Mais je sais ce que j'ai à faire et ce que vaut mon travail chez ce client donc c'est ok.", "10": "Yes fière !!"}}, {"id": 12, "role": "interne", "scores": {"1": 10, "2": 9, "3": 9, "4": 8, "5": 9, "6": 8, "7": 8, "8": 10, "9": 10, "10": 9}, "comments": {"1": "Bonne intégration dans l'équipe, reconnaissance du travail accompli et des prochaines étapes définies en fonction de mon ancienneté", "4": "besoin de réseauter davantage, je parle du cabinet dès que j'en ai l'occasion, peu de temps à accorder aux chantiers internes avec les missions, mais investissement sur les sujets proposées", "5": "équipe et manager disponibles, des temps RH moins cadrés à l'intégration mais bon rythme désormais", "6": "besoin d'anticiper et de cadrer notre calendrier d'open talk, toujours enrichissants. Bon rythme 1jour/semaine pour se retrouver avec une souplesse en cas d'indisponibilité.", "7": "besoin d'aller plus loin pour répondre encore plus au besoin spécifique des entreprises (angle stratégique + opérationnel), offre en cours de retravail notamment pour intégrer l'appui de l'IA ; besoin de jouer sur notre singularité pour se démarquer", "8": "missions sur des sujets stratégiques à forte valeur ajoutée, bonne intégration et enchaînement des missions"}}, {"id": 13, "role": "interne", "scores": {"1": 10, "2": 8, "3": 10, "4": 10, "5": 10, "6": 7, "7": 9, "8": 10, "9": 9, "10": 10}, "comments": {}}, {"id": 14, "role": "freelance", "scores": {"1": 10, "2": 10, "3": 10, "4": 10, "5": 10, "6": 10, "7": 10, "8": 10, "9": 8, "10": 10}, "comments": {}}, {"id": 15, "role": "interne", "scores": {"1": 8, "2": 10, "3": 6, "4": 7, "5": 7, "6": 8, "7": 7, "8": 6, "9": 8, "10": 7}, "comments": {}}, {"id": 16, "role": "interne", "scores": {"1": 10, "2": 7, "3": 8, "4": 8, "5": 8, "6": 8, "7": 8, "8": 8, "9": 7, "10": 10}, "comments": {}}]};
+const STORE_KEY='chrysalides_pulse_history_v1';
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const QKEYS={1:'reconnaissance',2:'equilibre',3:'liberte',4:'contribution',5:'accompagnement',6:'dynamique collective',7:'pertinence',8:'sens et valeur',9:'ambiance',10:'appartenance'};
+
+let HISTORY=[], CURID=null, SEG='all', TLMETRIC='enps';
+
+const isNum=v=>typeof v==='number'&&!isNaN(v);
+const fr1=v=>v==null?'—':v.toFixed(1).replace('.',',');
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function norm(s){return (s==null?'':''+s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
+function uid(){return 'snap_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* ---------- storage & history ---------- */
+function loadHistory(){try{const r=localStorage.getItem(STORE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveHistory(){try{localStorage.setItem(STORE_KEY,JSON.stringify(HISTORY));}catch(e){}}
+function seedSnap(){return{id:'snap_seed_juin_2026',date:'2026-06-22',label:'Juin 2026',questions:SEED.questions,respondents:SEED.respondents};}
+function sortHistory(){HISTORY.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
+function initHistory(){const h=loadHistory();HISTORY=(h&&Array.isArray(h)&&h.length)?h:[seedSnap()];sortHistory();saveHistory();CURID=HISTORY[HISTORY.length-1].id;}
+/* Charge l'archive committée data/history.json quand le dashboard est SERVI en http(s)
+   (GitHub Pages). Le fichier fait foi ; les snapshots purement locaux sont conservés.
+   En file:// le fetch est bloqué par le navigateur → on garde localStorage + SEED. */
+async function syncFromFile(){
+  if(!/^https?:$/.test(location.protocol))return false;
+  try{
+    const res=await fetch('data/history.json?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok)return false;
+    const fileArr=await res.json();
+    if(!Array.isArray(fileArr)||!fileArr.length)return false;
+    const ids=new Set(fileArr.map(s=>s.id));
+    const localExtra=HISTORY.filter(s=>s&&!ids.has(s.id)); // imports faits localement, pas encore dans le fichier
+    HISTORY=fileArr.concat(localExtra);
+    sortHistory();saveHistory();
+    if(!HISTORY.find(s=>s.id===CURID))CURID=HISTORY[HISTORY.length-1].id;
+    return true;
+  }catch(e){return false;}
+}
+function curSnap(){return HISTORY.find(s=>s.id===CURID)||HISTORY[HISTORY.length-1];}
+function prevOf(snap){const i=HISTORY.findIndex(s=>s.id===snap.id);return i>0?HISTORY[i-1]:null;}
+
+let Q,R;
+function bind(){const s=curSnap();Q=s.questions;R=s.respondents;}
+
+/* ---------- stats ---------- */
+function pop(seg,rs){rs=rs||R;return seg==='all'?rs:rs.filter(r=>r.role===seg);}
+function roleFR(r){return r==='interne'?'Interne':'Freelance';}
+function enpsOf(a){if(!a.length)return null;const p=a.filter(v=>v>=9).length,d=a.filter(v=>v<=6).length;return Math.round(100*p/a.length-100*d/a.length);}
+function meanOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
+function qScores(qid,seg){return pop(seg).map(r=>r.scores[qid]).filter(isNum);}
+function qAvg(qid,seg){return meanOf(qScores(qid,seg));}
+function qEnps(qid,seg){return enpsOf(qScores(qid,seg));}
+function allScores(seg){let a=[];pop(seg).forEach(r=>Q.forEach(q=>{if(isNum(r.scores[q.id]))a.push(r.scores[q.id]);}));return a;}
+function statsFor(snap,seg){
+  const rs=seg==='all'?snap.respondents:snap.respondents.filter(r=>r.role===seg);
+  let all=[];const qe={},qm={};
+  snap.questions.forEach(q=>{const arr=rs.map(r=>r.scores[q.id]).filter(isNum);qe[q.id]=enpsOf(arr);qm[q.id]=meanOf(arr);all=all.concat(arr);});
+  return{n:rs.length,enps:enpsOf(all),mean:meanOf(all),qe,qm};
+}
+function deltaHtml(cur,prev,suffix){
+  if(cur==null||prev==null)return '<span class="delta flat">—</span>';
+  const d=Math.round((cur-prev)*(suffix==='/10'?10:1))/(suffix==='/10'?10:1);
+  if(Math.abs(d)<(suffix==='/10'?0.05:0.5))return '<span class="delta flat">= stable</span>';
+  const up=d>0;const txt=(up?'▲ +':'▼ ')+(suffix==='/10'?Math.abs(d).toFixed(1).replace('.',','):Math.abs(d));
+  return `<span class="delta ${up?'up':'down'}">${up?'▲ +':'▼ −'}${suffix==='/10'?Math.abs(d).toFixed(1).replace('.',','):Math.abs(d)}</span>`;
+}
+function dcell(cur,prev,suffix){
+  if(cur==null||prev==null)return '<span class="dcell flat">—</span>';
+  const d=cur-prev;
+  if(Math.abs(d)<(suffix==='/10'?0.05:0.5))return '<span class="dcell flat">=</span>';
+  const up=d>0;
+  return `<span class="dcell ${up?'up':'down'}">${up?'+':'−'}${suffix==='/10'?Math.abs(d).toFixed(1).replace('.',','):Math.abs(d)}</span>`;
+}
+
+/* ---------- render main ---------- */
+function showEmpty(on){document.querySelectorAll('.dataSec').forEach(s=>s.style.display=on?'none':'');document.getElementById('emptyState').style.display=on?'block':'none';}
+function render(){
+  if(!HISTORY.length){showEmpty(true);buildSnapSelect();renderSnapList();document.getElementById('footNote').textContent='Aucun chargement enregistré. Importe un résultat ou restaure le chargement initial.';return;}
+  showEmpty(false);
+  bind();
+  const seg=SEG, snap=curSnap();
+  document.getElementById('cAll').textContent='('+R.length+')';
+  document.getElementById('cInt').textContent='('+R.filter(r=>r.role==='interne').length+')';
+  document.getElementById('cFree').textContent='('+R.filter(r=>r.role==='freelance').length+')';
+  const label=seg==='all'?"Toute l'équipe":(seg==='interne'?'Internes':'Freelances');
+  document.getElementById('popTag').textContent=label+' · '+snap.label;
+  document.getElementById('ovHint').textContent='10 dimensions notées de 0 à 10';
+
+  const sc=allScores(seg), mean=meanOf(sc);
+  document.getElementById('kScore').textContent=fr1(mean);
+  document.getElementById('kScoreMeta').textContent= seg==='all'
+    ? 'Internes '+fr1(meanOf(allScoresSeg('interne')))+' · Freelances '+fr1(meanOf(allScoresSeg('freelance')))
+    : ((mean-meanOf(allScoresSeg('all')))>=0?'+':'−')+Math.abs(mean-meanOf(allScoresSeg('all'))).toFixed(1).replace('.',',')+' vs moyenne globale';
+
+  const p=sc.filter(v=>v>=9).length,pa=sc.filter(v=>v>=7&&v<=8).length,d=sc.filter(v=>v<=6).length,n=sc.length;
+  const enps=enpsOf(sc),eEl=document.getElementById('kEnps');
+  eEl.textContent=(enps>=0?'+':'')+enps;
+  eEl.style.color=enps>=30?'var(--teal)':(enps>=0?'var(--gold)':'var(--rouge)');
+  // delta vs previous load on global eNPS
+  const prev=prevOf(snap);
+  if(prev){const pe=statsFor(prev,seg).enps;document.getElementById('kEnpsMeta').innerHTML='vs '+prev.label+' : '+deltaHtml(enps,pe);}
+  else document.getElementById('kEnpsMeta').textContent='% Promoteurs − % Détracteurs';
+
+  document.getElementById('kResp').textContent=pop(seg).length;
+  document.getElementById('kRespMeta').textContent= seg==='all'
+    ? R.filter(r=>r.role==='interne').length+' internes · '+R.filter(r=>r.role==='freelance').length+' freelances'
+    : n+' notes exprimées';
+  document.getElementById('spP').style.width=(100*p/n)+'%';
+  document.getElementById('spPa').style.width=(100*pa/n)+'%';
+  document.getElementById('spD').style.width=(100*d/n)+'%';
+  document.getElementById('lP').textContent=Math.round(100*p/n)+'%';
+  document.getElementById('lPa').textContent=Math.round(100*pa/n)+'%';
+  document.getElementById('lD').textContent=Math.round(100*d/n)+'%';
+
+  renderDims(seg);renderEnps(seg);renderVerbatims(seg);
+  renderEvolution();
+  renderSnapList();
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('active',b.dataset.seg===seg));
+  document.getElementById('footNote').textContent='Source : formulaire « Prenons le pouls » · '+HISTORY.length+' chargement'+(HISTORY.length>1?'s':'')+' · eNPS = % notes 9-10 − % notes 0-6.';
+}
+function allScoresSeg(seg){let a=[];pop(seg).forEach(r=>Q.forEach(q=>{if(isNum(r.scores[q.id]))a.push(r.scores[q.id]);}));return a;}
+
+function renderDims(seg){
+  const sortSeg=seg==='all'?'all':seg;
+  const rows=Q.map(q=>({q,combo:qAvg(q.id,'all'),interne:qAvg(q.id,'interne'),freelance:qAvg(q.id,'freelance'),sortv:qAvg(q.id,sortSeg)})).sort((a,b)=>b.sortv-a.sortv);
+  const el=document.getElementById('dims');el.innerHTML='';
+  rows.forEach((r,i)=>{
+    const combo=(seg==='all'?r.combo:r.sortv);
+    const row=document.createElement('div');row.className='row';
+    row.innerHTML=`<div class="rt"><span class="rank">${String(i+1).padStart(2,'0')}</span><span class="rname">${r.q.short}</span><span class="rcombo">${fr1(combo)}<span class="u">/10</span></span></div><div class="bars">${barRow('interne','Internes',r.interne,seg)}${barRow('freelance','Freelances',r.freelance,seg)}</div>`;
+    el.appendChild(row);
+  });
+}
+function barRow(role,label,val,seg){
+  if(val==null)return '';
+  const dim=(seg!=='all'&&seg!==role)?'dimmed':'';
+  return `<div class="bar ${role} ${dim}"><span class="bl"><span class="dot"></span>${label}</span><span class="track"><span class="fill" style="width:${(val*10).toFixed(1)}%"></span></span><span class="bv">${fr1(val)}</span></div>`;
+}
+function renderEnps(seg){
+  const rows=Q.map(q=>({q,e:qEnps(q.id,seg)})).filter(r=>r.e!=null).sort((a,b)=>b.e-a.e);
+  const el=document.getElementById('enpsGrid');el.innerHTML='';
+  rows.forEach(r=>{const cls=r.e>=30?'pos':(r.e>=0?'mid':'neg');const c=document.createElement('div');c.className='enps-card';c.innerHTML=`<div class="top"><span class="nm">${r.q.short}</span><span class="sc ${cls}">${r.e>=0?'+':''}${r.e}</span></div>`;el.appendChild(c);});
+}
+function renderVerbatims(seg){
+  const el=document.getElementById('verbatims-host');el.innerHTML='';let total=0;
+  Q.forEach(q=>{
+    const items=pop(seg).filter(r=>r.comments&&r.comments[q.id]).map(r=>({role:r.role,txt:r.comments[q.id],score:r.scores[q.id]}));
+    if(!items.length)return;total+=items.length;
+    const block=document.createElement('div');block.className='vq';
+    let h=`<h3><span class="qn">Q${q.id}</span> ${q.label}</h3><div class="vcount">${items.length} commentaire${items.length>1?'s':''}</div><div class="vlist">`;
+    items.forEach(it=>{h+=`<div class="verb ${it.role}"><div class="vmeta"><span class="chip ${it.role}">${roleFR(it.role)}</span><span class="vscore">${it.score!=null?it.score+'/10':''}</span></div><p>${escapeHtml(it.txt)}</p></div>`;});
+    h+=`</div>`;block.innerHTML=h;el.appendChild(block);
+  });
+  if(total===0)el.innerHTML='<p class="empty">Aucun verbatim pour cette population.</p>';
+}
+function escapeHtml(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ---------- évolution ---------- */
+function renderEvolution(){
+  const seg=SEG, snap=curSnap(), prev=prevOf(snap);
+  document.getElementById('evoHint').textContent=HISTORY.length+' chargement'+(HISTORY.length>1?'s':'')+' · population active';
+  // comparison block
+  const cmp=document.getElementById('cmpBlock');
+  if(!prev){
+    cmp.innerHTML='<div class="evo-note">Un seul chargement pour l\'instant ('+snap.label+'). Importe un nouveau résultat ci-dessous pour visualiser l\'évolution vs le chargement précédent.</div>';
+  } else {
+    const cur=statsFor(snap,seg),pr=statsFor(prev,seg);
+    cmp.innerHTML=`
+      <div class="cmp">
+        <div class="cmp-card">
+          <div class="cl">Chargement actuel</div>
+          <div class="cd">${snap.label} · ${cur.n} répondant${cur.n>1?'s':''}</div>
+          <div class="crow"><span class="cv enps-val" style="color:${cur.enps>=30?'var(--teal)':cur.enps>=0?'var(--gold)':'var(--rouge)'}">${cur.enps>=0?'+':''}${cur.enps}</span>${deltaHtml(cur.enps,pr.enps)}</div>
+          <div class="cd" style="margin:8px 0 0">eNPS global · score moyen ${fr1(cur.mean)}/10</div>
+        </div>
+        <div class="cmp-card">
+          <div class="cl">Chargement précédent</div>
+          <div class="cd">${prev.label} · ${pr.n} répondant${pr.n>1?'s':''}</div>
+          <div class="crow"><span class="cv" style="color:var(--ardoise)">${pr.enps>=0?'+':''}${pr.enps}</span></div>
+          <div class="cd" style="margin:8px 0 0">eNPS global · score moyen ${fr1(pr.mean)}/10</div>
+        </div>
+      </div>`;
+  }
+  buildTimelineSelect();
+  buildTimeline();
+  buildEvoTable();
+}
+
+function buildTimelineSelect(){
+  const sel=document.getElementById('tlDim');
+  if(sel.dataset.built)return;
+  let h='<option value="global">Global (toutes dimensions)</option>';
+  curSnap().questions.forEach(q=>{h+=`<option value="${q.id}">Q${q.id} · ${q.short}</option>`;});
+  sel.innerHTML=h;sel.dataset.built='1';
+}
+
+function buildTimeline(){
+  const seg=SEG, metric=TLMETRIC, dim=document.getElementById('tlDim').value;
+  const data=HISTORY.map(s=>{const st=statsFor(s,seg);let v;if(dim==='global')v=metric==='enps'?st.enps:st.mean;else v=metric==='enps'?st.qe[dim]:st.qm[dim];return{label:s.label,v};});
+  const host=document.getElementById('tlChart');
+  const valid=data.filter(d=>d.v!=null);
+  document.getElementById('tlHint').textContent=(metric==='enps'?'eNPS':'Score /10')+(dim==='global'?' · global':' · Q'+dim);
+  if(valid.length===0){host.innerHTML='<p class="empty">Pas de donnée pour cette sélection.</p>';return;}
+
+  const W=860,H=300,pl=46,pr=20,pt=24,pb=46;
+  const iw=W-pl-pr, ih=H-pt-pb;
+  let vals=valid.map(d=>d.v);
+  let lo=Math.min(...vals),hi=Math.max(...vals);
+  if(metric==='enps'){lo=Math.min(lo,0);const pad=Math.max(6,(hi-lo)*0.15);lo=Math.floor((lo-pad)/5)*5;hi=Math.ceil((hi+pad)/5)*5;lo=Math.max(-100,lo);hi=Math.min(100,hi);if(hi===lo)hi=lo+10;}
+  else{const pad=Math.max(0.4,(hi-lo)*0.2);lo=Math.max(0,Math.floor((lo-pad)*2)/2);hi=Math.min(10,Math.ceil((hi+pad)*2)/2);if(hi===lo)hi=Math.min(10,lo+1);}
+  const n=data.length;
+  const X=i=> n===1? pl+iw/2 : pl+ (iw*i/(n-1));
+  const Y=v=> pt+ ih*(1-(v-lo)/(hi-lo));
+  const col=seg==='interne'?'var(--teal)':seg==='freelance'?'var(--corail)':'var(--encre)';
+
+  // gridlines (4)
+  let grid='',ticks=4;
+  for(let t=0;t<=ticks;t++){const gv=lo+(hi-lo)*t/ticks;const gy=Y(gv);grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${W-pr}" y2="${gy.toFixed(1)}" stroke="#EFEAE2" stroke-width="1"/><text x="${pl-10}" y="${(gy+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#8B97A0">${metric==='enps'?Math.round(gv):fr1(gv)}</text>`;}
+  // zero line for enps
+  if(metric==='enps'&&lo<0&&hi>0){const zy=Y(0);grid+=`<line x1="${pl}" y1="${zy.toFixed(1)}" x2="${W-pr}" y2="${zy.toFixed(1)}" stroke="#C9C0B4" stroke-width="1" stroke-dasharray="4 4"/>`;}
+
+  // path over valid points (keep gaps if null)
+  let path='',dots='',xlabels='';
+  let started=false;
+  data.forEach((d,i)=>{
+    const x=X(i);
+    xlabels+=`<text x="${x.toFixed(1)}" y="${H-16}" text-anchor="middle" font-size="11.5" fill="#5A6B75" font-weight="600">${escapeHtml(d.label)}</text>`;
+    if(d.v==null){started=false;return;}
+    const y=Y(d.v);
+    path+=(started?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);started=true;
+    dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#fff" stroke="${col}" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${col}">${metric==='enps'?(d.v>=0?'+':'')+d.v:fr1(d.v)}</text>`;
+  });
+  const line=n>1?`<path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:'';
+  host.innerHTML=`<svg class="tl-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img">${grid}${line}${dots}${xlabels}</svg>`;
+}
+
+function buildEvoTable(){
+  const seg=SEG;
+  const stats=HISTORY.map(s=>({s,st:statsFor(s,seg)}));
+  let h='<table class="evo"><thead><tr><th>Dimension</th>';
+  stats.forEach(x=>h+=`<th>${escapeHtml(x.s.label)}</th>`);
+  h+='<th>Δ dernier</th></tr></thead><tbody>';
+  // global row
+  h+='<tr><td>eNPS global</td>';
+  stats.forEach(x=>{const e=x.st.enps;const cls=e>=30?'tag-pos':e>=0?'tag-mid':'tag-neg';h+=`<td class="num ${cls}">${e>=0?'+':''}${e}</td>`;});
+  const lastG=stats[stats.length-1].st.enps,prevG=stats.length>1?stats[stats.length-2].st.enps:null;
+  h+=`<td>${dcell(lastG,prevG)}</td></tr>`;
+  // per question
+  curSnap().questions.forEach(q=>{
+    h+=`<tr><td>${q.short}</td>`;
+    stats.forEach(x=>{const e=x.st.qe[q.id];const cls=e==null?'':e>=30?'tag-pos':e>=0?'tag-mid':'tag-neg';h+=`<td class="num ${cls}">${e==null?'—':(e>=0?'+':'')+e}</td>`;});
+    const last=stats[stats.length-1].st.qe[q.id],prev=stats.length>1?stats[stats.length-2].st.qe[q.id]:null;
+    h+=`<td>${dcell(last,prev)}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  document.getElementById('evoTable').innerHTML=h;
+  document.getElementById('evoTblHint').textContent='eNPS par dimension · '+(seg==='all'?'toute l\'équipe':seg==='interne'?'internes':'freelances');
+}
+
+/* ---------- snapshot selector & list ---------- */
+function buildSnapSelect(){
+  const sel=document.getElementById('snapSelect');
+  if(!HISTORY.length){sel.innerHTML='<option>— aucun chargement —</option>';sel.disabled=true;return;}
+  sel.disabled=false;
+  const ordered=[...HISTORY].reverse();
+  sel.innerHTML=ordered.map(s=>`<option value="${s.id}" ${s.id===CURID?'selected':''}>${escapeHtml(s.label)} (${s.date})</option>`).join('');
+}
+function renderSnapList(){
+  const el=document.getElementById('snapList');
+  const ordered=[...HISTORY].reverse();
+  el.innerHTML=ordered.map(s=>{
+    const st=statsFor(s,'all');const isCur=s.id===CURID;
+    return `<div class="snap-item ${isCur?'cur':''}">
+      <div class="si-main"><div class="si-label">${escapeHtml(s.label)} ${isCur?'<span class="badge-cur">affiché</span>':''}</div>
+      <div class="si-meta">${s.date} · ${st.n} répondants · eNPS ${st.enps>=0?'+':''}${st.enps} · moy ${fr1(st.mean)}/10</div></div>
+      <span class="si-enps" style="color:${st.enps>=30?'var(--teal)':st.enps>=0?'var(--gold)':'var(--rouge)'}">${st.enps>=0?'+':''}${st.enps}</span>
+      ${!isCur?`<button class="btn ghost" data-view="${s.id}">Afficher</button>`:''}
+      <button class="btn danger" data-del="${s.id}">Supprimer</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- import parsing ---------- */
+let pendingRespondents=null;
+function parseCSV(text){
+  const rows=[];let f='',row=[],q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else{if(c==='"')q=true;else if(c===','){row.push(f);f='';}else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}else if(c==='\r'){}else f+=c;}
+  }
+  if(f.length||row.length){row.push(f);rows.push(row);}
+  return rows.filter(r=>r.some(c=>(c||'').trim()!==''));
+}
+function rowsToRespondents(rows){
+  if(rows.length<2)throw new Error('Fichier vide ou sans réponses.');
+  const head=rows[0].map(h=>norm(h));
+  // role column
+  let roleCol=head.findIndex(h=>h.includes('papillon'));
+  if(roleCol<0)roleCol=head.findIndex(h=>h.includes('freelance')||h.includes('consultant'));
+  // map questions
+  const qcol={};
+  SEED.questions.forEach(q=>{
+    const kw=QKEYS[q.id];
+    let idx=head.findIndex(h=>h.includes(kw)&&!h.startsWith('commentaire'));
+    qcol[q.id]=idx;
+  });
+  const missing=SEED.questions.filter(q=>qcol[q.id]<0);
+  if(missing.length)throw new Error('Colonnes introuvables : '+missing.map(q=>'Q'+q.id).join(', ')+'. Vérifie que le fichier a la même structure que l\'enquête.');
+  const resp=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const papRaw=roleCol>=0?(''+ (r[roleCol]||'')):'';
+    const role=norm(papRaw).includes('freelance')?'freelance':'interne';
+    const scores={},comments={};let any=false;
+    SEED.questions.forEach(q=>{
+      const ci=qcol[q.id];let raw=ci>=0?r[ci]:null;
+      let num=parseFloat((''+ (raw==null?'':raw)).replace(',','.'));
+      if(!isNaN(num)){scores[q.id]=num;any=true;}
+      const cc=(ci>=0&&head[ci+1]&&head[ci+1].startsWith('commentaire'))?(r[ci+1]):null;
+      if(cc!=null&&(''+cc).trim()!=='')comments[q.id]=(''+cc).trim();
+    });
+    if(any)resp.push({id:i,role,scores,comments});
+  }
+  if(!resp.length)throw new Error('Aucune réponse exploitable détectée.');
+  return resp;
+}
+function aoaToRespondents(aoa){
+  const rows=aoa.map(r=>r.map(c=>c==null?'':c));
+  return rowsToRespondents(rows);
+}
+function loadSheetJS(){return new Promise((res,rej)=>{if(window.XLSX)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>res();s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});}
+
+function showImportForm(resp){
+  pendingRespondents=resp;
+  const ni=resp.filter(r=>r.role==='interne').length,nf=resp.filter(r=>r.role==='freelance').length;
+  const st=statsFor({questions:SEED.questions,respondents:resp},'all');
+  document.getElementById('impPreview').innerHTML=`Détecté : <b>${resp.length}</b> réponses (${ni} internes · ${nf} freelances) · eNPS global <b>${st.enps>=0?'+':''}${st.enps}</b> · score moyen <b>${fr1(st.mean)}/10</b>`;
+  const today=new Date();
+  document.getElementById('impDate').value=today.toISOString().slice(0,10);
+  document.getElementById('impLabel').value=cap(MOIS[today.getMonth()])+' '+today.getFullYear();
+  document.getElementById('impForm').classList.add('show');
+  document.getElementById('impMsg').textContent='';
+}
+function handleFile(file){
+  const msg=document.getElementById('impMsg');msg.textContent='Lecture du fichier…';
+  const ext=file.name.toLowerCase().split('.').pop();
+  if(ext==='csv'){
+    const fr=new FileReader();fr.onload=()=>{try{const resp=rowsToRespondents(parseCSV(fr.result));showImportForm(resp);}catch(e){msg.textContent='⚠ '+e.message;}};fr.onerror=()=>msg.textContent='⚠ Lecture impossible.';fr.readAsText(file,'utf-8');
+  }else{
+    loadSheetJS().then(()=>{const fr=new FileReader();fr.onload=()=>{try{const wb=XLSX.read(new Uint8Array(fr.result),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});const resp=aoaToRespondents(aoa);showImportForm(resp);}catch(e){msg.textContent='⚠ '+e.message;}};fr.onerror=()=>msg.textContent='⚠ Lecture impossible.';fr.readAsArrayBuffer(file);})
+    .catch(()=>{msg.innerHTML='⚠ Lecture .xlsx indisponible (hors ligne). Exporte le formulaire en <b>.csv</b> et réimporte-le.';});
+  }
+}
+
+/* ---------- events ---------- */
+function wire(){
+  document.getElementById('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SEG=b.dataset.seg;render();});
+  document.getElementById('snapSelect').addEventListener('change',e=>{CURID=e.target.value;render();});
+  document.getElementById('tlMetric').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;TLMETRIC=b.dataset.m;document.querySelectorAll('#tlMetric button').forEach(x=>x.classList.toggle('active',x===b));buildTimeline();});
+  document.getElementById('tlDim').addEventListener('change',buildTimeline);
+
+  const drop=document.getElementById('drop'),fi=document.getElementById('fileInput');
+  drop.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);fi.value='';});
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+  document.getElementById('impCancel').addEventListener('click',()=>{document.getElementById('impForm').classList.remove('show');pendingRespondents=null;});
+  document.getElementById('impConfirm').addEventListener('click',()=>{
+    if(!pendingRespondents)return;
+    const label=(document.getElementById('impLabel').value||'').trim()||'Sans titre';
+    const date=document.getElementById('impDate').value||new Date().toISOString().slice(0,10);
+    HISTORY.push({id:uid(),date,label,questions:SEED.questions,respondents:pendingRespondents});
+    sortHistory();saveHistory();
+    CURID=HISTORY.find(s=>s.label===label&&s.date===date).id;
+    pendingRespondents=null;document.getElementById('impForm').classList.remove('show');
+    buildSnapSelect();render();
+    document.getElementById('evolution').scrollIntoView({behavior:'smooth'});
+  });
+
+  document.getElementById('snapList').addEventListener('click',e=>{
+    const v=e.target.closest('[data-view]'),d=e.target.closest('[data-del]');
+    if(v){CURID=v.dataset.view;buildSnapSelect();render();}
+    if(d){const id=d.dataset.del;const s=HISTORY.find(x=>x.id===id);const msg=HISTORY.length===1?('Supprimer le dernier chargement « '+s.label+' » ? Le tableau de bord sera vide jusqu\'au prochain import.'):('Supprimer le chargement « '+s.label+' » ?');if(confirm(msg)){HISTORY=HISTORY.filter(x=>x.id!==id);if(!HISTORY.length)CURID=null;else if(CURID===id||!HISTORY.find(x=>x.id===CURID))CURID=HISTORY[HISTORY.length-1].id;saveHistory();buildSnapSelect();render();}}
+  });
+
+  document.getElementById('exportBtn').addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(HISTORY,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='history.json';a.click();
+  });
+  document.getElementById('importHistBtn').addEventListener('click',()=>document.getElementById('histInput').click());
+  document.getElementById('histInput').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+    fr.onload=()=>{try{const arr=JSON.parse(fr.result);if(!Array.isArray(arr))throw 0;const ids=new Set(HISTORY.map(s=>s.id));arr.forEach(s=>{if(s&&s.id&&!ids.has(s.id)&&s.respondents){HISTORY.push(s);ids.add(s.id);}});sortHistory();saveHistory();buildSnapSelect();render();alert('Historique importé : '+HISTORY.length+' chargements au total.');}catch(err){alert('Fichier JSON invalide.');}};
+    fr.readAsText(f,'utf-8');e.target.value='';
+  });
+  const rb=document.getElementById('restoreBtn');if(rb)rb.addEventListener('click',()=>{HISTORY=[seedSnap()];saveHistory();CURID=HISTORY[0].id;buildSnapSelect();render();window.scrollTo({top:0,behavior:'smooth'});});
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    if(confirm('Réinitialiser tout l\'historique et revenir au seul chargement de Juin 2026 ?')){HISTORY=[seedSnap()];saveHistory();CURID=HISTORY[0].id;buildSnapSelect();render();}
+  });
+}
+
+initHistory();buildSnapSelect();wire();render();
+/* Si servi en http(s) : on resynchronise depuis l'archive committée puis on re-rend. */
+syncFromFile().then(changed=>{if(changed){buildSnapSelect();render();}});
+</script>
+</body>
+</html>

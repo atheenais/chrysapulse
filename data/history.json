@@ -1,0 +1,373 @@
+[
+  {
+    "id": "snap_seed_juin_2026",
+    "date": "2026-06-22",
+    "label": "Juin 2026",
+    "questions": [
+      {
+        "id": 1,
+        "label": "Reconnaissance et intégration au sein du cabinet",
+        "short": "Reconnaissance & intégration"
+      },
+      {
+        "id": 2,
+        "label": "Équilibre vie professionnelle / vie personnelle",
+        "short": "Équilibre pro / perso"
+      },
+      {
+        "id": 3,
+        "label": "Liberté d'expression et d'initiative",
+        "short": "Liberté d'expression & initiative"
+      },
+      {
+        "id": 4,
+        "label": "Contribution au développement / rayonnement",
+        "short": "Contribution au développement"
+      },
+      {
+        "id": 5,
+        "label": "Accompagnement et soutien par Chrysalides",
+        "short": "Accompagnement & soutien"
+      },
+      {
+        "id": 6,
+        "label": "Dynamique collective et esprit d'équipe",
+        "short": "Dynamique collective & équipe"
+      },
+      {
+        "id": 7,
+        "label": "Pertinence de l'offre de Chrysalides pour les clients",
+        "short": "Pertinence de l'offre clients"
+      },
+      {
+        "id": 8,
+        "label": "Sens et valeur des missions",
+        "short": "Sens & valeur des missions"
+      },
+      {
+        "id": 9,
+        "label": "Ambiance et valeurs chez le client",
+        "short": "Ambiance & valeurs chez le client"
+      },
+      {
+        "id": 10,
+        "label": "Sentiment d'appartenance à Chrysalides",
+        "short": "Sentiment d'appartenance"
+      }
+    ],
+    "respondents": [
+      {
+        "id": 1,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 9,
+          "3": 9,
+          "4": 9,
+          "5": 9,
+          "6": 9,
+          "7": 9,
+          "8": 9,
+          "9": 9,
+          "10": 9
+        },
+        "comments": {}
+      },
+      {
+        "id": 2,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 4,
+          "5": 10,
+          "6": 10,
+          "7": 7,
+          "8": 10,
+          "9": 10,
+          "10": 6
+        },
+        "comments": {}
+      },
+      {
+        "id": 3,
+        "role": "interne",
+        "scores": {
+          "1": 9,
+          "2": 10,
+          "3": 8,
+          "4": 9,
+          "5": 10,
+          "6": 7,
+          "7": 10,
+          "8": 8,
+          "9": 9,
+          "10": 8
+        },
+        "comments": {
+          "1": "Je sens qu’on me responsabilise, tout en étant autonome.",
+          "2": "RAS",
+          "6": "J aimerai + d’afterwork réguliers pour une plus grande cohésion et une meilleure connaissance des personnes de l’équipe"
+        }
+      },
+      {
+        "id": 4,
+        "role": "freelance",
+        "scores": {
+          "1": 8,
+          "2": 4,
+          "3": 7,
+          "4": 9,
+          "5": 7,
+          "6": 9,
+          "7": 7,
+          "8": 10,
+          "9": 10,
+          "10": 10
+        },
+        "comments": {}
+      },
+      {
+        "id": 5,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 9,
+          "3": 10,
+          "4": 8,
+          "5": 9,
+          "6": 8,
+          "7": 9,
+          "8": 8,
+          "9": 8,
+          "10": 10
+        },
+        "comments": {}
+      },
+      {
+        "id": 6,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 7,
+          "3": 10,
+          "4": 10,
+          "5": 10,
+          "6": 10,
+          "7": 10,
+          "8": 10,
+          "9": 10,
+          "10": 10
+        },
+        "comments": {
+          "2": "Bcp de déplacement"
+        }
+      },
+      {
+        "id": 7,
+        "role": "freelance",
+        "scores": {
+          "1": 7,
+          "2": 8,
+          "3": 8,
+          "4": 7,
+          "5": 6,
+          "6": 6,
+          "7": 8,
+          "8": 7,
+          "9": 8,
+          "10": 8
+        },
+        "comments": {
+          "1": "J’ai été très bien accueilli par les équipes !",
+          "4": "Je me rends compte que je pourrai faire encore plus mais j’ai à cœur de donner une image positive du cabinet",
+          "5": "Je prends ma part car je n’ai pas assez sollicité le cabinet",
+          "6": "Je ne connais pas encore assez bien l’équipe ni ne participe aux rituels, cependant les consultants chrysalides que je croise chez les clients  n’hésite pas à partager !",
+          "8": "La mission a beaucoup évolué et les livrables sont très orientés processus avec une casquette chef de projet, je me sens utile mais ce n’est pas ce que je préfère faire."
+        }
+      },
+      {
+        "id": 8,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 8,
+          "5": 10,
+          "6": 10,
+          "7": 10,
+          "8": 10,
+          "9": 10,
+          "10": 10
+        },
+        "comments": {
+          "1": "Au fur et à mesure de mon partenariat avec Chrysalides, mes missions évoluent, deviennent plus exigeantes, à la hauteur de mes compétences.",
+          "2": "S'il d'ailleurs il devait y avoir une montée en puissance de ma charge de travail, ce ne serait pas pour me déplaire.",
+          "3": "Je dispose d'un temps de paroles à la hauteur de ma présence",
+          "4": "Je contribue a hauteur de ma distance géographique.",
+          "5": "Accompagnement 5 etoiles",
+          "6": "Ras"
+        }
+      },
+      {
+        "id": 9,
+        "role": "freelance",
+        "scores": {
+          "1": 5,
+          "2": 10,
+          "3": 8,
+          "4": 10,
+          "5": 10,
+          "6": 5,
+          "7": 10,
+          "8": 10,
+          "9": 8,
+          "10": 7
+        },
+        "comments": {
+          "1": "Moins d'un an dans le cabinet en tant que freelance et 100% en mission chez le client avec beaucoup de déplacement donc il n'est pas évident de s'intégrer au collectif quand on est absent et à distance.",
+          "6": "IDEM que l'intégration : moins d'un an dans le cabinet en tant que freelance et 100% en mission chez le client avec beaucoup de déplacement donc je ne ressens pas la dynamique collective et l'esprit d'équipe.\nCependant, le cabinet met tout en œuvre pour créer une dynamique, surtout depuis Yoobic"
+        }
+      },
+      {
+        "id": 10,
+        "role": "freelance",
+        "scores": {
+          "1": 5,
+          "2": 8,
+          "3": 8,
+          "4": 5,
+          "5": 3,
+          "6": 4,
+          "7": 4,
+          "8": 9,
+          "9": 9,
+          "10": 4
+        },
+        "comments": {}
+      },
+      {
+        "id": 11,
+        "role": "interne",
+        "scores": {
+          "1": 9,
+          "2": 7,
+          "3": 8,
+          "4": 8,
+          "5": 10,
+          "6": 9,
+          "7": 9,
+          "8": 10,
+          "9": 9,
+          "10": 10
+        },
+        "comments": {
+          "1": "Bon collectif\nTravail dans la confiance\nEsprit d'équipe\nEntraide\nFacilité et simplicité dans les échanges",
+          "2": "Ca dépend beaucoup des périodes.\nCertaines périodes permettent un bon équilibre pro / perso, et les périodes de rush chez le client (je dirai entre 1/3 et 1/2 du temps) pas vraiment.",
+          "3": "Pour la grande majorité des sujets oui.\nMais je pense qu'il y a des sujets (auxquels je n'ai pas encore été confrontée) que je sens plus sensible que d'autres et pour lesquels ca pourrait être plus délicat : Ne pas aimer une mission, salaire, ...",
+          "4": "Un grand oui pour véhiculer une image de marque positive de Chrysalides.\nPour la partie développement notamment missions, je ne me sens pas assez armée/ à l'aise pour bien amener Chrysalides quand je sens un signal faible chez le client (jusqu'ou aller dans la démarche, de quelle manière, qui relancer à quelle fréquence, ...). J'ai identifié des besoins et ai proposé notre accompagnement mais ça n'a pas été concluant faute de budget chez le client.",
+          "5": "Disponibilité de Mélissa au top, qui s'arrange toujours pour trouver un moment même si son agenda est full.\nDisponibilité aussi des collègues pour échanger un regard sur un sujet, aider sur de la méthodo,... Vraiment top.",
+          "6": "Equipe au top\nManque de rituels (open talk pas fait depuis un moment), moments d'intelligence collective, d'inspiration, ...",
+          "7": "En phase avec le positionnement de Chrysalides.\nOn doit aller plus loin dans la démarche (s'ouvrir à d'autres secteurs que le retail, ...) mais c'est déjà noté dans la vision 2030.",
+          "8": "Reconnaissance de mon client qui voit ma plue value et me le dit.\nJe me sens utile, c'est vraiment appréciable !",
+          "9": "Client très bienveillant et vraiment top.\nPerte d'un point car démarrage compliqué avec le manager, et relations qui ne se sont jamais vraiment instaurées. Mais je sais ce que j'ai à faire et ce que vaut mon travail chez ce client donc c'est ok.",
+          "10": "Yes fière !!"
+        }
+      },
+      {
+        "id": 12,
+        "role": "interne",
+        "scores": {
+          "1": 10,
+          "2": 9,
+          "3": 9,
+          "4": 8,
+          "5": 9,
+          "6": 8,
+          "7": 8,
+          "8": 10,
+          "9": 10,
+          "10": 9
+        },
+        "comments": {
+          "1": "Bonne intégration dans l'équipe, reconnaissance du travail accompli et des prochaines étapes définies en fonction de mon ancienneté",
+          "4": "besoin de réseauter davantage, je parle du cabinet dès que j'en ai l'occasion, peu de temps à accorder aux chantiers internes avec les missions, mais investissement sur les sujets proposées",
+          "5": "équipe et manager disponibles, des temps RH moins cadrés à l'intégration mais bon rythme désormais",
+          "6": "besoin d'anticiper et de cadrer notre calendrier d'open talk, toujours enrichissants. Bon rythme 1jour/semaine pour se retrouver avec une souplesse en cas d'indisponibilité.",
+          "7": "besoin d'aller plus loin pour répondre encore plus au besoin spécifique des entreprises (angle stratégique + opérationnel), offre en cours de retravail notamment pour intégrer l'appui de l'IA ; besoin de jouer sur notre singularité pour se démarquer",
+          "8": "missions sur des sujets stratégiques à forte valeur ajoutée, bonne intégration et enchaînement des missions"
+        }
+      },
+      {
+        "id": 13,
+        "role": "interne",
+        "scores": {
+          "1": 10,
+          "2": 8,
+          "3": 10,
+          "4": 10,
+          "5": 10,
+          "6": 7,
+          "7": 9,
+          "8": 10,
+          "9": 9,
+          "10": 10
+        },
+        "comments": {}
+      },
+      {
+        "id": 14,
+        "role": "freelance",
+        "scores": {
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10,
+          "5": 10,
+          "6": 10,
+          "7": 10,
+          "8": 10,
+          "9": 8,
+          "10": 10
+        },
+        "comments": {}
+      },
+      {
+        "id": 15,
+        "role": "interne",
+        "scores": {
+          "1": 8,
+          "2": 10,
+          "3": 6,
+          "4": 7,
+          "5": 7,
+          "6": 8,
+          "7": 7,
+          "8": 6,
+          "9": 8,
+          "10": 7
+        },
+        "comments": {}
+      },
+      {
+        "id": 16,
+        "role": "interne",
+        "scores": {
+          "1": 10,
+          "2": 7,
+          "3": 8,
+          "4": 8,
+          "5": 8,
+          "6": 8,
+          "7": 8,
+          "8": 8,
+          "9": 7,
+          "10": 10
+        },
+        "comments": {}
+      }
+    ]
+  }
+]
