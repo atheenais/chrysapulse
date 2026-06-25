@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.0"></script>
 <style>
 :root{
   --corail:#F25C3B; --corail-soft:#FBE3DB;
@@ -330,6 +331,7 @@ footer .bf{font-family:'Fraunces',serif;color:var(--encre)}
       <span class="hint">Ajouter un nouveau résultat · gérer l'historique</span>
     </div>
     <div class="manage">
+      <div id="authBar" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin-bottom:16px;padding:12px 14px;background:var(--teal-soft);border-radius:12px;font-size:14px"></div>
       <div class="drop" id="drop">
         <div><b>Importer un nouveau chargement</b> — glisser-déposer ou cliquer</div>
         <div class="small">Export Microsoft Forms (.xlsx) ou fichier .csv · même structure que l'enquête</div>
@@ -356,8 +358,7 @@ footer .bf{font-family:'Fraunces',serif;color:var(--encre)}
         <button class="btn danger" id="resetBtn">Réinitialiser l'historique</button>
       </div>
       <div class="warn">
-        <b>À savoir :</b> l'historique est enregistré localement dans ce navigateur (localStorage). Il n'est pas partagé entre machines ou navigateurs.
-        Pour le sauvegarder ou le transférer, utilise « Exporter l'historique ». L'import .xlsx nécessite une connexion (chargement de la librairie de lecture) ; le .csv fonctionne hors ligne.
+        <b>À savoir :</b> l'historique est enregistré dans la base Appwrite et <b>partagé entre tous les appareils</b>. La consultation est libre ; <b>importer ou supprimer un chargement nécessite de se connecter avec GitHub</b>. Une copie locale (localStorage) sert de cache hors-ligne. L'import .xlsx nécessite une connexion (chargement de la librairie de lecture) ; le .csv fonctionne hors ligne.
       </div>
     </div>
   </section>
@@ -388,23 +389,98 @@ function saveHistory(){try{localStorage.setItem(STORE_KEY,JSON.stringify(HISTORY
 function seedSnap(){return{id:'snap_seed_juin_2026',date:'2026-06-22',label:'Juin 2026',questions:SEED.questions,respondents:SEED.respondents};}
 function sortHistory(){HISTORY.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
 function initHistory(){const h=loadHistory();HISTORY=(h&&Array.isArray(h)&&h.length)?h:[seedSnap()];sortHistory();saveHistory();CURID=HISTORY[HISTORY.length-1].id;}
-/* Charge l'archive committée data/history.json quand le dashboard est SERVI en http(s)
-   (GitHub Pages). Le fichier fait foi ; les snapshots purement locaux sont conservés.
-   En file:// le fetch est bloqué par le navigateur → on garde localStorage + SEED. */
-async function syncFromFile(){
-  if(!/^https?:$/.test(location.protocol))return false;
+/* ---------- Appwrite (persistance partagée) ----------
+   Lecture publique (anon) ; écriture réservée aux utilisateurs connectés (GitHub OAuth).
+   localStorage sert de cache hors-ligne. SEED = filet de dernier recours. */
+const AW_ENDPOINT='https://fra.cloud.appwrite.io/v1';
+const AW_PROJECT='6a3d2314000e362641e2';
+const AW_DB='chrysapulse';
+const AW_TABLE='pulse_snapshots';
+let aw=null,awAccount=null,awDB=null,USER=null;
+function awReady(){
+  if(awDB)return true;
+  if(typeof Appwrite==='undefined')return false;
   try{
-    const res=await fetch('data/history.json?t='+Date.now(),{cache:'no-store'});
-    if(!res.ok)return false;
-    const fileArr=await res.json();
-    if(!Array.isArray(fileArr)||!fileArr.length)return false;
-    const ids=new Set(fileArr.map(s=>s.id));
-    const localExtra=HISTORY.filter(s=>s&&!ids.has(s.id)); // imports faits localement, pas encore dans le fichier
-    HISTORY=fileArr.concat(localExtra);
-    sortHistory();saveHistory();
-    if(!HISTORY.find(s=>s.id===CURID))CURID=HISTORY[HISTORY.length-1].id;
+    const c=new Appwrite.Client().setEndpoint(AW_ENDPOINT).setProject(AW_PROJECT);
+    awAccount=new Appwrite.Account(c);
+    awDB=new Appwrite.Databases(c); // SDK 17 : API classique "Databases" (= TablesDB)
+    aw=c;
     return true;
-  }catch(e){return false;}
+  }catch(e){aw=null;awAccount=null;awDB=null;return false;}
+}
+/* snapshot {id,date,label,questions,respondents} <-> row {$id,date,label,payload(json)} */
+function snapToRow(s){return{date:s.date,label:s.label,payload:JSON.stringify({questions:s.questions,respondents:s.respondents})};}
+function rowToSnap(r){let p={};try{p=JSON.parse(r.payload)||{};}catch(e){}return{id:r.$id,date:r.date,label:r.label,questions:(p.questions&&p.questions.length)?p.questions:SEED.questions,respondents:p.respondents||[]};}
+
+/* Lit toute la base → HISTORY (autoritaire). true si lecture OK, false si échec réseau/SDK (on garde le cache). */
+async function loadFromAppwrite(){
+  if(!awReady())return false;
+  try{
+    const res=await awDB.listDocuments(AW_DB,AW_TABLE,[Appwrite.Query.orderAsc('date'),Appwrite.Query.limit(200)]);
+    const rows=res.documents||res.rows||[];
+    HISTORY=rows.map(rowToSnap);
+    sortHistory();saveHistory();
+    if(!HISTORY.length)CURID=null;
+    else if(!HISTORY.find(s=>s.id===CURID))CURID=HISTORY[HISTORY.length-1].id;
+    return true;
+  }catch(e){console.warn('Appwrite load:',e&&e.message);return false;}
+}
+async function awCreateSnap(s){return awDB.createDocument(AW_DB,AW_TABLE,s.id,snapToRow(s));}
+async function awDeleteSnap(id){return awDB.deleteDocument(AW_DB,AW_TABLE,id);}
+async function awDeleteAll(){
+  const res=await awDB.listDocuments(AW_DB,AW_TABLE,[Appwrite.Query.limit(200)]);
+  const rows=res.documents||res.rows||[];
+  for(const r of rows){await awDeleteSnap(r.$id);}
+}
+async function awSeed(){
+  try{await awCreateSnap(seedSnap());}
+  catch(e){if(!/already exists|409/i.test((e&&e.message)||''))throw e;} // déjà présent → ok
+}
+
+/* ---------- auth GitHub (flux token, robuste cross-domaine) ---------- */
+function isLogged(){return !!USER;}
+async function refreshUser(){
+  if(!awReady()){USER=null;return null;}
+  try{USER=await awAccount.get();}catch(e){USER=null;}
+  return USER;
+}
+async function handleOAuthReturn(){
+  if(!awReady())return;
+  const u=new URL(location.href);
+  const userId=u.searchParams.get('userId'),secret=u.searchParams.get('secret');
+  if(userId&&secret){
+    try{await awAccount.createSession(userId,secret);}catch(e){console.warn('OAuth session:',e&&e.message);}
+    history.replaceState({},'',u.origin+u.pathname); // nettoie l'URL
+  }
+}
+async function loginGitHub(){
+  if(!awReady()){alert('Service indisponible.');return;}
+  const here=location.href.split('?')[0].split('#')[0];
+  try{
+    const provider=(typeof Appwrite!=='undefined'&&Appwrite.OAuthProvider)?Appwrite.OAuthProvider.Github:'github';
+    let url=awAccount.createOAuth2Token(provider,here,here);
+    if(url&&typeof url.then==='function')url=await url;
+    if(url)window.location.href=(typeof url==='string'?url:url.toString());
+  }catch(e){alert('Connexion impossible : '+((e&&e.message)||e));}
+}
+async function logout(){
+  try{await awAccount.deleteSession('current');}catch(e){}
+  USER=null;renderAuth();
+}
+function requireLogin(){
+  if(isLogged())return true;
+  alert('Connecte-toi avec GitHub pour modifier les chargements.');
+  return false;
+}
+function renderAuth(){
+  const el=document.getElementById('authBar');if(!el)return;
+  if(USER){
+    el.innerHTML='<span>🟢 Connecté · <b>'+escapeHtml(USER.name||USER.email||'GitHub')+'</b></span><button class="btn ghost" id="logoutBtn">Déconnexion</button>';
+    const b=document.getElementById('logoutBtn');if(b)b.onclick=logout;
+  }else{
+    el.innerHTML='<span>🔒 <b>Lecture seule</b> — connecte-toi pour importer ou supprimer un chargement</span><button class="btn primary" id="loginBtn">Se connecter avec GitHub</button>';
+    const b=document.getElementById('loginBtn');if(b)b.onclick=loginGitHub;
+  }
 }
 function curSnap(){return HISTORY.find(s=>s.id===CURID)||HISTORY[HISTORY.length-1];}
 function prevOf(snap){const i=HISTORY.findIndex(s=>s.id===snap.id);return i>0?HISTORY[i-1]:null;}
@@ -737,22 +813,34 @@ function wire(){
   drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
 
   document.getElementById('impCancel').addEventListener('click',()=>{document.getElementById('impForm').classList.remove('show');pendingRespondents=null;});
-  document.getElementById('impConfirm').addEventListener('click',()=>{
+  document.getElementById('impConfirm').addEventListener('click',async()=>{
     if(!pendingRespondents)return;
+    if(!requireLogin())return;
     const label=(document.getElementById('impLabel').value||'').trim()||'Sans titre';
     const date=document.getElementById('impDate').value||new Date().toISOString().slice(0,10);
-    HISTORY.push({id:uid(),date,label,questions:SEED.questions,respondents:pendingRespondents});
-    sortHistory();saveHistory();
-    CURID=HISTORY.find(s=>s.label===label&&s.date===date).id;
+    const snap={id:uid(),date,label,questions:SEED.questions,respondents:pendingRespondents};
+    const btn=document.getElementById('impConfirm');btn.disabled=true;
+    try{await awCreateSnap(snap);}
+    catch(e){alert('Échec de l’enregistrement : '+((e&&e.message)||e));btn.disabled=false;return;}
+    btn.disabled=false;
     pendingRespondents=null;document.getElementById('impForm').classList.remove('show');
+    await loadFromAppwrite();CURID=snap.id;
     buildSnapSelect();render();
     document.getElementById('evolution').scrollIntoView({behavior:'smooth'});
   });
 
-  document.getElementById('snapList').addEventListener('click',e=>{
+  document.getElementById('snapList').addEventListener('click',async e=>{
     const v=e.target.closest('[data-view]'),d=e.target.closest('[data-del]');
-    if(v){CURID=v.dataset.view;buildSnapSelect();render();}
-    if(d){const id=d.dataset.del;const s=HISTORY.find(x=>x.id===id);const msg=HISTORY.length===1?('Supprimer le dernier chargement « '+s.label+' » ? Le tableau de bord sera vide jusqu\'au prochain import.'):('Supprimer le chargement « '+s.label+' » ?');if(confirm(msg)){HISTORY=HISTORY.filter(x=>x.id!==id);if(!HISTORY.length)CURID=null;else if(CURID===id||!HISTORY.find(x=>x.id===CURID))CURID=HISTORY[HISTORY.length-1].id;saveHistory();buildSnapSelect();render();}}
+    if(v){CURID=v.dataset.view;buildSnapSelect();render();return;}
+    if(d){
+      if(!requireLogin())return;
+      const id=d.dataset.del,s=HISTORY.find(x=>x.id===id);
+      const msg=HISTORY.length===1?('Supprimer le dernier chargement « '+s.label+' » ? Le tableau de bord sera vide jusqu\'au prochain import.'):('Supprimer le chargement « '+s.label+' » ?');
+      if(!confirm(msg))return;
+      try{await awDeleteSnap(id);}
+      catch(err){alert('Échec de la suppression : '+((err&&err.message)||err));return;}
+      await loadFromAppwrite();buildSnapSelect();render();
+    }
   });
 
   document.getElementById('exportBtn').addEventListener('click',()=>{
@@ -761,19 +849,45 @@ function wire(){
   });
   document.getElementById('importHistBtn').addEventListener('click',()=>document.getElementById('histInput').click());
   document.getElementById('histInput').addEventListener('change',e=>{
-    const f=e.target.files[0];if(!f)return;const fr=new FileReader();
-    fr.onload=()=>{try{const arr=JSON.parse(fr.result);if(!Array.isArray(arr))throw 0;const ids=new Set(HISTORY.map(s=>s.id));arr.forEach(s=>{if(s&&s.id&&!ids.has(s.id)&&s.respondents){HISTORY.push(s);ids.add(s.id);}});sortHistory();saveHistory();buildSnapSelect();render();alert('Historique importé : '+HISTORY.length+' chargements au total.');}catch(err){alert('Fichier JSON invalide.');}};
+    const f=e.target.files[0];if(!f){return;}
+    if(!requireLogin()){e.target.value='';return;}
+    const fr=new FileReader();
+    fr.onload=async()=>{
+      let arr;try{arr=JSON.parse(fr.result);if(!Array.isArray(arr))throw 0;}catch(err){alert('Fichier JSON invalide.');return;}
+      let added=0,errs=0;
+      for(const s of arr){
+        if(!s||!s.id||!s.respondents)continue;
+        try{await awCreateSnap(s);added++;}
+        catch(err){if(/already exists|409/i.test((err&&err.message)||''))continue;errs++;}
+      }
+      await loadFromAppwrite();buildSnapSelect();render();
+      alert('Import terminé : '+added+' chargement(s) ajouté(s)'+(errs?(' · '+errs+' en erreur'):'')+'. Total en base : '+HISTORY.length+'.');
+    };
     fr.readAsText(f,'utf-8');e.target.value='';
   });
-  const rb=document.getElementById('restoreBtn');if(rb)rb.addEventListener('click',()=>{HISTORY=[seedSnap()];saveHistory();CURID=HISTORY[0].id;buildSnapSelect();render();window.scrollTo({top:0,behavior:'smooth'});});
-  document.getElementById('resetBtn').addEventListener('click',()=>{
-    if(confirm('Réinitialiser tout l\'historique et revenir au seul chargement de Juin 2026 ?')){HISTORY=[seedSnap()];saveHistory();CURID=HISTORY[0].id;buildSnapSelect();render();}
+  const rb=document.getElementById('restoreBtn');if(rb)rb.addEventListener('click',async()=>{
+    if(!requireLogin())return;
+    try{await awSeed();}catch(e){alert('Échec : '+((e&&e.message)||e));return;}
+    await loadFromAppwrite();buildSnapSelect();render();window.scrollTo({top:0,behavior:'smooth'});
+  });
+  document.getElementById('resetBtn').addEventListener('click',async()=>{
+    if(!requireLogin())return;
+    if(!confirm('Réinitialiser tout l\'historique et revenir au seul chargement de Juin 2026 ? Cette action supprime toutes les autres vagues de la base.'))return;
+    try{await awDeleteAll();await awSeed();}catch(e){alert('Échec : '+((e&&e.message)||e));return;}
+    await loadFromAppwrite();buildSnapSelect();render();
   });
 }
 
-initHistory();buildSnapSelect();wire();render();
-/* Si servi en http(s) : on resynchronise depuis l'archive committée puis on re-rend. */
-syncFromFile().then(changed=>{if(changed){buildSnapSelect();render();}});
+/* ---------- boot ---------- */
+initHistory();buildSnapSelect();wire();render(); // peinture immédiate depuis le cache localStorage / SEED
+renderAuth();
+(async()=>{
+  await handleOAuthReturn();   // complète la session si retour OAuth (?userId&secret)
+  await refreshUser();         // qui est connecté ?
+  renderAuth();
+  const ok=await loadFromAppwrite(); // la base Appwrite fait foi
+  if(ok){buildSnapSelect();render();}
+})();
 </script>
 </body>
 </html>
