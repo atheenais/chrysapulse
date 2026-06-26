@@ -361,7 +361,7 @@ footer .bf{font-family:'Comfortaa',system-ui,sans-serif;color:var(--encre)}
         <button class="btn danger" id="resetBtn">Réinitialiser l'historique</button>
       </div>
       <div class="warn">
-        <b>À savoir :</b> l'historique est enregistré dans la base Appwrite et <b>partagé entre tous les appareils</b>. La consultation est libre ; <b>importer ou supprimer un chargement nécessite de se connecter avec GitHub</b>. Une copie locale (localStorage) sert de cache hors-ligne. L'import .xlsx nécessite une connexion (chargement de la librairie de lecture) ; le .csv fonctionne hors ligne.
+        <b>À savoir :</b> l'historique est enregistré dans la base Appwrite et <b>partagé entre tous les appareils</b>. La consultation est libre ; <b>importer ou supprimer un chargement est réservé aux comptes autorisés</b> (connexion GitHub). Une copie locale (localStorage) sert de cache hors-ligne. L'import .xlsx nécessite une connexion (chargement de la librairie de lecture) ; le .csv fonctionne hors ligne.
       </div>
     </div>
   </section>
@@ -399,6 +399,8 @@ const AW_ENDPOINT='https://fra.cloud.appwrite.io/v1';
 const AW_PROJECT='6a3d2314000e362641e2';
 const AW_DB='6a3d3aed003676b53dfb';
 const AW_TABLE='pulse_snapshots';
+// Comptes autorisés à ÉCRIRE (User IDs Appwrite ou e-mails). Doit refléter les permissions de la table.
+const AW_EDITORS=['6a3d4b55d989137ada32'];
 let aw=null,awAccount=null,awDB=null,USER=null;
 function awReady(){
   if(awDB)return true;
@@ -442,6 +444,7 @@ async function awSeed(){
 
 /* ---------- auth GitHub (flux token, robuste cross-domaine) ---------- */
 function isLogged(){return !!USER;}
+function isEditor(){return !!(USER&&(AW_EDITORS.includes(USER.$id)||AW_EDITORS.includes(USER.email)));}
 async function refreshUser(){
   if(!awReady()){USER=null;return null;}
   try{USER=await awAccount.get();}catch(e){USER=null;}
@@ -470,20 +473,31 @@ async function logout(){
   try{await awAccount.deleteSession('current');}catch(e){}
   USER=null;renderAuth();
 }
-function requireLogin(){
-  if(isLogged())return true;
-  alert('Connecte-toi avec GitHub pour modifier les chargements.');
+function requireEditor(){
+  if(isEditor())return true;
+  alert(USER ? "Ce compte n'est pas autorisé à modifier les chargements." : "Connecte-toi avec un compte autorisé pour modifier les chargements.");
   return false;
 }
 function renderAuth(){
   const el=document.getElementById('authBar');if(!el)return;
-  if(USER){
-    el.innerHTML='<span>🟢 Connecté · <b>'+escapeHtml(USER.name||USER.email||'GitHub')+'</b></span><button class="btn ghost" id="logoutBtn">Déconnexion</button>';
+  if(isEditor()){
+    el.innerHTML='<span>🟢 Connecté · <b>'+escapeHtml(USER.name||USER.email||'GitHub')+'</b> · éditeur</span><button class="btn ghost" id="logoutBtn">Déconnexion</button>';
+    const b=document.getElementById('logoutBtn');if(b)b.onclick=logout;
+  }else if(USER){
+    el.innerHTML='<span>👁️ Connecté en <b>lecture seule</b> · '+escapeHtml(USER.name||USER.email||'GitHub')+' (compte non autorisé à modifier)</span><button class="btn ghost" id="logoutBtn">Déconnexion</button>';
     const b=document.getElementById('logoutBtn');if(b)b.onclick=logout;
   }else{
-    el.innerHTML='<span>🔒 <b>Lecture seule</b> : connecte-toi pour importer ou supprimer un chargement</span><button class="btn primary" id="loginBtn">Se connecter avec GitHub</button>';
+    el.innerHTML='<span>🔒 <b>Lecture seule</b> : connecte-toi avec un compte autorisé pour importer ou supprimer</span><button class="btn primary" id="loginBtn">Se connecter avec GitHub</button>';
     const b=document.getElementById('loginBtn');if(b)b.onclick=loginGitHub;
   }
+  applyEditorUI();
+}
+/* Masque tous les contrôles d'écriture si l'utilisateur n'est pas éditeur autorisé. */
+function applyEditorUI(){
+  const ed=isEditor();
+  const show=(id,on)=>{const x=document.getElementById(id);if(x)x.style.display=on?'':'none';};
+  show('drop',ed); show('resetBtn',ed); show('importHistBtn',ed); show('restoreBtn',ed);
+  if(!ed){const fm=document.getElementById('impForm');if(fm)fm.classList.remove('show');}
 }
 function curSnap(){return HISTORY.find(s=>s.id===CURID)||HISTORY[HISTORY.length-1];}
 function prevOf(snap){const i=HISTORY.findIndex(s=>s.id===snap.id);return i>0?HISTORY[i-1]:null;}
@@ -728,7 +742,7 @@ function renderSnapList(){
       <div class="si-meta">${s.date} · ${st.n} répondants · eNPS ${st.enps>=0?'+':''}${st.enps} · moy ${fr1(st.mean)}/10</div></div>
       <span class="si-enps" style="color:${st.enps>=30?'var(--teal)':st.enps>=0?'var(--gold)':'var(--rouge)'}">${st.enps>=0?'+':''}${st.enps}</span>
       ${!isCur?`<button class="btn ghost" data-view="${s.id}">Afficher</button>`:''}
-      <button class="btn danger" data-del="${s.id}">Supprimer</button>
+      ${isEditor()?`<button class="btn danger" data-del="${s.id}">Supprimer</button>`:''}
     </div>`;
   }).join('');
 }
@@ -822,7 +836,7 @@ function wire(){
   document.getElementById('impCancel').addEventListener('click',()=>{document.getElementById('impForm').classList.remove('show');pendingRespondents=null;});
   document.getElementById('impConfirm').addEventListener('click',async()=>{
     if(!pendingRespondents)return;
-    if(!requireLogin())return;
+    if(!requireEditor())return;
     const label=(document.getElementById('impLabel').value||'').trim()||'Sans titre';
     const date=document.getElementById('impDate').value||new Date().toISOString().slice(0,10);
     const snap={id:uid(),date,label,questions:SEED.questions,respondents:pendingRespondents};
@@ -840,7 +854,7 @@ function wire(){
     const v=e.target.closest('[data-view]'),d=e.target.closest('[data-del]');
     if(v){CURID=v.dataset.view;buildSnapSelect();render();return;}
     if(d){
-      if(!requireLogin())return;
+      if(!requireEditor())return;
       const id=d.dataset.del,s=HISTORY.find(x=>x.id===id);
       const msg=HISTORY.length===1?('Supprimer le dernier chargement « '+s.label+' » ? Le tableau de bord sera vide jusqu\'au prochain import.'):('Supprimer le chargement « '+s.label+' » ?');
       if(!confirm(msg))return;
@@ -857,7 +871,7 @@ function wire(){
   document.getElementById('importHistBtn').addEventListener('click',()=>document.getElementById('histInput').click());
   document.getElementById('histInput').addEventListener('change',e=>{
     const f=e.target.files[0];if(!f){return;}
-    if(!requireLogin()){e.target.value='';return;}
+    if(!requireEditor()){e.target.value='';return;}
     const fr=new FileReader();
     fr.onload=async()=>{
       let arr;try{arr=JSON.parse(fr.result);if(!Array.isArray(arr))throw 0;}catch(err){alert('Fichier JSON invalide.');return;}
@@ -873,12 +887,12 @@ function wire(){
     fr.readAsText(f,'utf-8');e.target.value='';
   });
   const rb=document.getElementById('restoreBtn');if(rb)rb.addEventListener('click',async()=>{
-    if(!requireLogin())return;
+    if(!requireEditor())return;
     try{await awSeed();}catch(e){alert('Échec : '+((e&&e.message)||e));return;}
     await loadFromAppwrite();buildSnapSelect();render();window.scrollTo({top:0,behavior:'smooth'});
   });
   document.getElementById('resetBtn').addEventListener('click',async()=>{
-    if(!requireLogin())return;
+    if(!requireEditor())return;
     if(!confirm('Réinitialiser tout l\'historique et revenir au seul chargement de Juin 2026 ? Cette action supprime toutes les autres vagues de la base.'))return;
     try{await awDeleteAll();await awSeed();}catch(e){alert('Échec : '+((e&&e.message)||e));return;}
     await loadFromAppwrite();buildSnapSelect();render();
