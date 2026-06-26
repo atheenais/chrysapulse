@@ -25,7 +25,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--fon
   line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 80px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 header{padding:48px 0 28px}
-.brand-logo{height:58px;width:auto;max-width:100%;display:block;margin-bottom:18px}
+.brand-logo{height:58px;width:auto;max-width:100%;display:block;margin:0 auto 18px}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;color:var(--corail);margin-bottom:14px}
 .eyebrow::before{content:"";width:26px;height:1.5px;background:var(--corail)}
@@ -78,26 +78,25 @@ section{padding-top:38px}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
 
-.dims{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:10px 24px;box-shadow:var(--shadow)}
-.row{padding:18px 0;border-bottom:1px solid var(--ligne)}
+.dims{background:var(--carte);border:1px solid var(--ligne);border-radius:var(--r);padding:4px 22px;box-shadow:var(--shadow)}
+.row{padding:11px 0;border-bottom:1px solid var(--ligne)}
 .row:last-child{border-bottom:0}
-.row .rt{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.rank{font-family:'Comfortaa',system-ui,sans-serif;font-size:14px;color:var(--ardoise);width:26px;flex:none}
-.rname{font-weight:600;font-size:15px}
-.rcombo{margin-left:auto;font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:22px;letter-spacing:-.01em}
-.rcombo .u{font-size:13px;color:var(--ardoise);font-weight:500}
-.bars{display:flex;flex-direction:column;gap:7px}
-.bar{display:grid;grid-template-columns:88px 1fr 42px;align-items:center;gap:12px}
-.bar .bl{font-size:12px;font-weight:600;color:var(--ardoise);display:flex;align-items:center;gap:7px}
-.bar .bl .dot{width:8px;height:8px;border-radius:50%}
-.bar.interne .bl .dot{background:var(--teal)}
-.bar.freelance .bl .dot{background:var(--corail)}
-.track{height:11px;background:#F0EBE3;border-radius:6px;overflow:hidden}
-.fill{display:block;height:100%;border-radius:6px;transform-origin:left center;animation:grow .7s cubic-bezier(.22,1,.36,1) both}
+.row .rt{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.rank{font-family:'Comfortaa',system-ui,sans-serif;font-size:13px;color:var(--ardoise);width:22px;flex:none}
+.rname{font-weight:600;font-size:14px}
+.rcombo{margin-left:auto;font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.rcombo .u{font-size:12px;color:var(--ardoise);font-weight:500}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:13px 1fr 34px;align-items:center;gap:10px}
+.bar .dot{width:9px;height:9px;border-radius:50%}
+.bar.interne .dot{background:var(--teal)}
+.bar.freelance .dot{background:var(--corail)}
+.track{height:8px;background:#F0EBE3;border-radius:5px;overflow:hidden}
+.fill{display:block;height:100%;border-radius:5px;transform-origin:left center;animation:grow .7s cubic-bezier(.22,1,.36,1) both}
 @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .bar.interne .fill{background:var(--teal)}
 .bar.freelance .fill{background:var(--corail)}
-.bar .bv{font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:14px;text-align:right}
+.bar .bv{font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:13px;text-align:right}
 .dimmed{opacity:.32}
 
 .enps-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -199,9 +198,17 @@ footer .bf{font-family:'Comfortaa',system-ui,sans-serif;color:var(--encre)}
 @media(max-width:820px){
   .kpis{grid-template-columns:1fr 1fr}
   .enps-grid,.vlist,.cmp{grid-template-columns:1fr}
-  .bar{grid-template-columns:78px 1fr 38px}
+  .bar{grid-template-columns:13px 1fr 30px;gap:8px}
 }
-@media(max-width:520px){.kpis{grid-template-columns:1fr}header{padding:34px 0 18px}}
+@media(max-width:520px){
+  .kpis{grid-template-columns:1fr}
+  header{padding:34px 0 18px}
+  .controls .wrap{gap:12px}
+  .ctl-group{width:100%;flex-direction:column;align-items:stretch;gap:6px}
+  .snap-select{max-width:none}
+  .seg{width:100%}
+  .seg button{flex:1;justify-content:center;padding:9px 4px;font-size:12px;gap:4px}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -277,7 +284,7 @@ footer .bf{font-family:'Comfortaa',system-ui,sans-serif;color:var(--encre)}
   <section class="dataSec">
     <div class="section-head">
       <h2>Les 10 dimensions, classées</h2>
-      <span class="hint">Triées par score de la population active · internes vs freelances toujours visibles</span>
+      <span class="hint"><span style="color:var(--teal)">●</span> internes &nbsp;<span style="color:var(--corail)">●</span> freelances &nbsp;· échelle 0 à 10</span>
     </div>
     <div class="dims" id="dims"></div>
   </section>
@@ -600,7 +607,7 @@ function renderDims(seg){
 function barRow(role,label,val,seg){
   if(val==null)return '';
   const dim=(seg!=='all'&&seg!==role)?'dimmed':'';
-  return `<div class="bar ${role} ${dim}"><span class="bl"><span class="dot"></span>${label}</span><span class="track"><span class="fill" style="width:${(val*10).toFixed(1)}%"></span></span><span class="bv">${fr1(val)}</span></div>`;
+  return `<div class="bar ${role} ${dim}" title="${label} : ${fr1(val)} / 10"><span class="dot"></span><span class="track"><span class="fill" style="width:${(val*10).toFixed(1)}%"></span></span><span class="bv">${fr1(val)}</span></div>`;
 }
 function renderEnps(seg){
   const rows=Q.map(q=>({q,e:qEnps(q.id,seg)})).filter(r=>r.e!=null).sort((a,b)=>b.e-a.e);
