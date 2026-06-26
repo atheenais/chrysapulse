@@ -201,6 +201,23 @@ footer{margin-top:50px;padding-top:24px;border-top:1px solid var(--ligne);font-s
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 footer .bf{font-family:'Comfortaa',system-ui,sans-serif;color:var(--encre)}
 
+/* ===== PISTES D'ACTION ===== */
+.ap-intro{color:var(--ardoise);font-size:14px;max-width:760px;margin-bottom:18px}
+.ap-list{display:flex;flex-direction:column;gap:14px}
+.ap-card{background:var(--carte);border:1px solid var(--ligne);border-left:4px solid var(--teal);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+.ap-card.prio{border-left-color:var(--corail)}
+.ap-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.ap-num{font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:15px;color:var(--ardoise)}
+.ap-head h3{font-family:'Comfortaa',system-ui,sans-serif;font-weight:600;font-size:16px}
+.ap-tag{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--corail-soft);color:#A01457;padding:3px 9px;border-radius:999px}
+.ap-card p{font-size:14px;line-height:1.55;margin-bottom:8px}
+.ap-constat{color:#33424c}
+.ap-action{color:var(--encre)}
+.ap-card b{color:var(--encre)}
+.ap-meta{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ligne)}
+.ap-meta span{display:flex;flex-direction:column;font-size:12.5px;color:var(--ardoise);flex:1;min-width:200px}
+.ap-meta i{font-style:normal;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:11px;color:var(--teal);margin-bottom:2px}
+.ap-foot{color:var(--ardoise);font-size:12.5px;font-style:italic;margin-top:14px}
 @media(max-width:820px){
   .kpis{grid-template-columns:1fr 1fr}
   .enps-grid,.vlist,.cmp{grid-template-columns:1fr}
@@ -330,6 +347,48 @@ footer .bf{font-family:'Comfortaa',system-ui,sans-serif;color:var(--encre)}
       <span class="hint" id="evoTblHint">eNPS par dimension · population active</span>
     </div>
     <div class="evo-table-wrap"><div id="evoTable"></div></div>
+  </section>
+
+  <!-- PISTES D'ACTION -->
+  <section id="actions" class="dataSec">
+    <div class="section-head">
+      <h2>Pistes d'action</h2>
+      <span class="hint">Plan à 6 mois · sur la base de la vague Juin 2026</span>
+    </div>
+    <p class="ap-intro">Synthèse des résultats, des tendances et des verbatims, traduite en actions concrètes et réalisables d'ici fin 2026. À revoir à chaque nouvelle vague.</p>
+    <div class="ap-list">
+      <article class="ap-card prio">
+        <div class="ap-head"><span class="ap-num">01</span><h3>Réactiver la dynamique collective et les rituels</h3><span class="ap-tag">Priorité</span></div>
+        <p class="ap-constat"><b>Constat.</b> Dimension la plus basse : dynamique collective 8,0/10 (eNPS +25). Verbatims convergents : « open talk pas fait depuis un moment », « manque de rituels, de moments d'intelligence collective », « j'aimerais plus d'afterworks réguliers ».</p>
+        <p class="ap-action"><b>Action.</b> Établir un calendrier cadencé de rituels (open talk, afterworks, temps d'intelligence collective), planifié à l'avance et partagé à toute l'équipe, freelances inclus en visio.</p>
+        <div class="ap-meta"><span><i>Horizon</i>Calendrier sous 1 mois, 1er cycle complet à 3 mois</span><span><i>Indicateur</i>eNPS « dynamique collective » à la prochaine vague ; nombre de rituels tenus par trimestre</span></div>
+      </article>
+      <article class="ap-card">
+        <div class="ap-head"><span class="ap-num">02</span><h3>Mieux intégrer les freelances en mission longue ou à distance</h3></div>
+        <p class="ap-constat"><b>Constat.</b> Plusieurs freelances « 100% en mission chez le client, beaucoup de déplacement » se disent peu intégrés au collectif (intégration et dynamique collective).</p>
+        <p class="ap-action"><b>Action.</b> Mettre en place un parcours d'inclusion : parrain interne, invitation systématique aux rituels en visio, point mensuel dédié.</p>
+        <div class="ap-meta"><span><i>Horizon</i>3 mois</span><span><i>Indicateur</i>Écart d'eNPS internes / freelances sur la dynamique collective ; participation des freelances aux rituels</span></div>
+      </article>
+      <article class="ap-card">
+        <div class="ap-head"><span class="ap-num">03</span><h3>Outiller le développement commercial</h3></div>
+        <p class="ap-constat"><b>Constat.</b> Contribution au développement 8,1/10 (eNPS +31). Verbatims : « pas assez armée pour amener Chrysalides quand je sens un signal faible chez le client », « besoin de réseauter davantage », peu de temps pour les chantiers internes.</p>
+        <p class="ap-action"><b>Action.</b> Diffuser un playbook léger « détecter et traiter un signal faible client », animer 2 ateliers de mise en pratique, et protéger un temps dédié aux chantiers internes.</p>
+        <div class="ap-meta"><span><i>Horizon</i>Playbook à 2 mois, ateliers à 4 mois</span><span><i>Indicateur</i>eNPS « contribution au développement » ; nombre d'opportunités remontées</span></div>
+      </article>
+      <article class="ap-card">
+        <div class="ap-head"><span class="ap-num">04</span><h3>Lisser les pics de charge et fiabiliser le suivi de mission</h3></div>
+        <p class="ap-constat"><b>Constat.</b> Équilibre pro / perso fragilisé par les « périodes de rush chez le client (1/3 à 1/2 du temps) ». Signal isolé mais fort : « aucun suivi de la mission chez mon client ».</p>
+        <p class="ap-action"><b>Action.</b> Anticiper le staffing sur les pics de charge et instaurer un point de suivi de mission régulier (mensuel) pour chaque consultant.</p>
+        <div class="ap-meta"><span><i>Horizon</i>Rituel de suivi en place à 2 mois</span><span><i>Indicateur</i>Part des missions avec point de suivi mensuel ; verbatims sur l'équilibre et l'accompagnement</span></div>
+      </article>
+      <article class="ap-card">
+        <div class="ap-head"><span class="ap-num">05</span><h3>Initier l'évolution de l'offre</h3></div>
+        <p class="ap-constat"><b>Constat.</b> Pertinence de l'offre 8,4/10. Verbatims : « s'ouvrir à d'autres secteurs que le retail », « angle stratégique et opérationnel », « intégrer l'appui de l'IA » (déjà inscrit dans la vision 2030).</p>
+        <p class="ap-action"><b>Action.</b> Cadrer un chantier offre (diversification sectorielle, articulation stratégique et opérationnelle, apport de l'IA). Objectif à 6 mois : lancer le cadrage, pas livrer.</p>
+        <div class="ap-meta"><span><i>Horizon</i>Note de cadrage et feuille de route à 6 mois</span><span><i>Indicateur</i>Jalons du chantier tenus</span></div>
+      </article>
+    </div>
+    <p class="ap-foot">5 priorités hiérarchisées, chacune reliée à un constat chiffré et aux verbatims. Plan indicatif, à arbitrer et à actualiser par la direction et les RH à chaque vague.</p>
   </section>
 
   <!-- GÉRER LES CHARGEMENTS -->
