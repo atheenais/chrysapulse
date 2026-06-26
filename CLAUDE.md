@@ -1,4 +1,4 @@
-# CLAUDE.md — Dashboard « Prenons le pouls » (NPS Collaborateurs Chrysalides)
+# CLAUDE.md : Dashboard « Prenons le pouls » (NPS Collaborateurs Chrysalides)
 
 Fichier d'instructions pour poursuivre le développement de l'outil avec Claude Code.
 Lis ce document **en entier** avant toute modification.
@@ -23,8 +23,8 @@ Public : direction / RH de Chrysalides. Langue de l'interface et du code : **fra
 ## 2. État actuel (déjà livré)
 
 - KPI globaux : score moyen /10, eNPS global, répondants, répartition Promoteurs/Passifs/Détracteurs.
-- Classement des 10 dimensions avec barres internes vs freelances (toujours visibles, segment actif mis en avant, tri dynamique).
-- eNPS par dimension.
+- Classement des 10 dimensions en **format compact** (pastilles internes/freelances, barres fines, légende unique), tri dynamique selon la population active.
+- **eNPS de chaque dimension intégré au classement** : pastille à droite du score /10, colorée selon la variation vs vague précédente (vert si hausse > +5, orange si stagnation ±5, rouge pâle si baisse < -5).
 - Verbatims regroupés par question, étiquetés Interne/Freelance, retranscrits exactement (`white-space:pre-line`). **Un verbatim a été retiré sur demande** (Interne #15, Q5).
 - Sélecteur de **population** (Tous / Internes / Freelances) : recalcule tout en direct.
 - Sélecteur de **chargement** : affiche n'importe quel snapshot historisé.
@@ -48,14 +48,14 @@ Public : direction / RH de Chrysalides. Langue de l'interface et du code : **fra
 > Si tu as besoin du générateur d'origine pour repartir des données brutes, demande-le.
 
 Le fichier est organisé en 3 blocs dans cet ordre :
-1. `<style>` … `</style>` — tout le CSS (tokens dans `:root`).
+1. `<style>` … `</style>` : tout le CSS (tokens dans `:root`).
 2. `<body>` … markup des sections.
-3. `<script>` … `</script>` — toute la logique. La donnée de référence est la constante **`SEED`** en haut du script.
+3. `<script>` … `</script>` : toute la logique. La donnée de référence est la constante **`SEED`** en haut du script.
 
 Aucune dépendance npm. Dépendances réseau :
-- **Appwrite Web SDK** `https://cdn.jsdelivr.net/npm/appwrite@17.0.0` — **requis pour la persistance** (lecture/écriture des chargements). Hors ligne, le dashboard retombe sur le cache `localStorage` puis sur `SEED` (affichage seulement, pas d'écriture). Voir §7.
-- Google Fonts (Fraunces + Inter) — fallback `serif`/`sans-serif` si hors ligne. *(optionnel)*
-- SheetJS `https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js` — chargé **à la demande** uniquement pour l'import `.xlsx`. Le `.csv` fonctionne hors ligne. *(optionnel)*
+- **Appwrite Web SDK** `https://cdn.jsdelivr.net/npm/appwrite@17.0.0` : **requis pour la persistance** (lecture/écriture des chargements). Hors ligne, le dashboard retombe sur le cache `localStorage` puis sur `SEED` (affichage seulement, pas d'écriture). Voir §7.
+- Google Fonts (Comfortaa + Inter) : fallback `serif`/`sans-serif` si hors ligne. *(optionnel)*
+- SheetJS `https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js` : chargé **à la demande** uniquement pour l'import `.xlsx`. Le `.csv` fonctionne hors ligne. *(optionnel)*
 
 ---
 
@@ -70,7 +70,7 @@ python3 -m http.server 8000
 ```
 
 > ⚠️ **Teste toujours via le serveur local (http), pas en `file://`.** Appwrite n'autorise que les hôtes
-> déclarés comme **plateformes Web** dans le projet (`localhost` et `atheenais.github.io`) — en `file://`
+> déclarés comme **plateformes Web** dans le projet (`localhost` et `atheenais.github.io`) : en `file://`
 > l'origine est `null` et les appels Appwrite sont bloqués par CORS. La connexion GitHub (OAuth) exige aussi http(s).
 
 ---
@@ -117,14 +117,14 @@ Chaque snapshot embarque **ses propres données brutes** → tous les écrans pe
 | `TLMETRIC` | métrique de la timeline : `'enps' | 'mean'` |
 | `Q`, `R` | raccourcis vers `questions` / `respondents` du snapshot courant, posés par `bind()` |
 | `aw`, `awAccount`, `awDB` | client Appwrite + services (initialisés paresseusement par `awReady()`) |
-| `USER` | utilisateur connecté (`account.get()`) ou `null` ; pilote la barre d'auth et `requireLogin()` |
+| `USER` | utilisateur connecté (`account.get()`) ou `null` ; pilote la barre d'auth, le gating éditeur (`isEditor`) et `requireEditor()` |
 
 ### 5.4 Flux de rendu
 
 `render()` est le point d'entrée unique :
 
 1. Si `HISTORY` vide → `showEmpty(true)` + `renderSnapList()` + return (état vide).
-2. Sinon `bind()` (pose `Q`, `R`) puis met à jour : KPI, `renderDims`, `renderEnps`, `renderVerbatims`, `renderEvolution`, `renderSnapList`.
+2. Sinon `bind()` (pose `Q`, `R`) puis met à jour : KPI, `renderDims`, `renderVerbatims`, `renderEvolution`, `renderSnapList`.
 3. Les sélecteurs réémettent `render()` ou un sous-rendu via `wire()`.
 
 Toujours **passer par `render()`** après une mutation de `HISTORY`/`CURID`/`SEG`.
@@ -135,8 +135,8 @@ Toujours **passer par `render()`** après une mutation de `HISTORY`/`CURID`/`SEG
 Données/calcul : enpsOf, meanOf, qScores, qAvg, qEnps, allScores, allScoresSeg, statsFor, pop
 Historique     : loadHistory, saveHistory, seedSnap, sortHistory, initHistory, curSnap, prevOf, bind
 Appwrite/data  : awReady, snapToRow, rowToSnap, loadFromAppwrite, awCreateSnap, awDeleteSnap, awDeleteAll, awSeed
-Auth GitHub    : isLogged, refreshUser, handleOAuthReturn, loginGitHub, logout, requireLogin, renderAuth
-Rendu          : render, renderDims, barRow, renderEnps, renderVerbatims, renderEvolution,
+Auth GitHub    : isLogged, isEditor, refreshUser, handleOAuthReturn, loginGitHub, logout, requireEditor, renderAuth, applyEditorUI
+Rendu          : render, renderDims, barRow, enpsBadge, renderVerbatims, renderEvolution,
                  buildTimelineSelect, buildTimeline, buildEvoTable, buildSnapSelect, renderSnapList, showEmpty
 Deltas/affich. : deltaHtml, dcell, roleFR, fr1, escapeHtml, cap, norm, uid
 Import         : handleFile, parseCSV, rowsToRespondents, aoaToRespondents, loadSheetJS, showImportForm
@@ -163,7 +163,7 @@ Implémenté dans `enpsOf(array)`. Toute modification des seuils doit l'être **
 
 ---
 
-## 7. Persistance & historique — Appwrite
+## 7. Persistance & historique : Appwrite
 
 **Source de vérité = base Appwrite** (partagée entre tous les appareils). `localStorage` n'est plus qu'un **cache hors-ligne**, `SEED` un filet de dernier recours.
 
@@ -177,28 +177,29 @@ AW_TABLE    = 'pulse_snapshots'        // Table/Collection ID
 ```
 - **SDK 17** : le global CDN expose **`Appwrite.Databases`** (API classique, **pas** `TablesDB`), méthodes **positionnelles** : `listDocuments(db, col, queries)`, `createDocument(db, col, id, data)`, `deleteDocument(db, col, id)`. Auth : `account.get()`, `createOAuth2Token(provider, success, failure)` (qui **redirige** le navigateur en SDK web), `createSession(userId, secret)`, `deleteSession('current')`.
 - **Modèle ligne** : 1 row = 1 snapshot. Colonnes `date` (string), `label` (string), `payload` (**longtext** = JSON `{questions, respondents}`). Le **`$id` de la row = l'id du snapshot** (`snap_seed_juin_2026`, ou `uid()`). `snapToRow()` / `rowToSnap()` font la conversion.
-- **Permissions** (niveau table, Row Security OFF) : Read = `Any` (lecture publique) ; Create/Update/Delete = utilisateurs autorisés. ⚠️ **Restreindre l'écriture à une Team** (voir §sécurité) — `Role.users()` laisserait écrire n'importe quel compte GitHub.
+- **Permissions** (niveau table, Row Security OFF) : Read = `Any` (lecture publique) ; Create/Update/Delete = utilisateurs autorisés. ⚠️ **Restreindre l'écriture à une Team** (voir §sécurité) : `Role.users()` laisserait écrire n'importe quel compte GitHub.
 
-### Auth — GitHub OAuth (flux token, cross-domaine)
+### Auth : GitHub OAuth (flux token, cross-domaine)
 1. `loginGitHub()` → `createOAuth2Token(Github, here, here)` redirige vers GitHub.
 2. Retour sur la page avec `?userId&secret` → `handleOAuthReturn()` appelle `createSession(userId, secret)` puis nettoie l'URL.
 3. Le provider GitHub doit être **activé** dans Auth → Providers (App ID + secret d'une *GitHub OAuth App*, callback = celui affiché par Appwrite). Les hôtes `localhost` + `atheenais.github.io` doivent être déclarés comme **plateformes Web**.
 
 ### Flux de chargement / écriture
 - **Boot** : `initHistory()` peint le cache local instantanément, puis `loadFromAppwrite()` (lecture anon) **écrase** `HISTORY` avec la base (autoritaire) et met à jour le cache. Échec réseau → on garde le cache.
-- **Écritures** (toutes derrière `requireLogin()`) : import d'une vague → `createDocument` ; suppression → `deleteDocument` ; réinitialiser → `awDeleteAll()` + `awSeed()`. Après chaque écriture → `loadFromAppwrite()` + `render()`.
+- **Écritures** (toutes derrière `requireEditor()`) : import d'une vague → `createDocument` ; suppression → `deleteDocument` ; réinitialiser → `awDeleteAll()` + `awSeed()`. Après chaque écriture → `loadFromAppwrite()` + `render()`.
+- **Gating UI** : `applyEditorUI()` masque tous les contrôles d'écriture (import, Supprimer, Réinitialiser, Importer .json, Restaurer) si l'utilisateur connecté n'est pas dans la liste blanche `AW_EDITORS`. Double sécurité avec les permissions Appwrite côté serveur.
 
 ### Workflow « ajouter un chargement de résultats »
 1. Se **connecter** (GitHub) dans le dashboard.
 2. **Importer** l'export Forms (`.xlsx`/`.csv`) → renseigner date + libellé → « Ajouter à l'historique » (insert Appwrite).
-3. Tous les appareils voient la vague au prochain rafraîchissement (lecture publique). Pas de commit/push nécessaire — la donnée vit dans Appwrite, plus dans le repo.
+3. Tous les appareils voient la vague au prochain rafraîchissement (lecture publique). Pas de commit/push nécessaire : la donnée vit dans Appwrite, plus dans le repo.
 4. `data/history.json` reste une **sauvegarde** (bouton « Exporter l'historique ») et la **graine** initiale (« Importer un historique (.json) » quand la base est vide).
 
 > Clé localStorage (cache) : **`chrysalides_pulse_history_v1`**. En cas de changement de schéma snapshot incompatible, incrémenter la version de la clé. Le seed garde l'**id stable `snap_seed_juin_2026`** (évite les doublons à l'import).
 
 ---
 
-## 8. Import — contrat de données (export Forms)
+## 8. Import : contrat de données (export Forms)
 
 `handleFile()` route selon l'extension :
 - `.csv` → `parseCSV()` (parseur RFC4180 minimal, hors ligne).
@@ -238,19 +239,19 @@ Tous les tokens sont dans `:root` (haut du `<style>`). **Ne jamais coder une cou
 --r:18px;  --shadow:…                         /* rayon, ombre */
 ```
 
-- Typo : **Comfortaa** (display — titres + chiffres clés, arrondie, police officielle de marque) + **Inter** (corps/données, lisibilité). Métaphore visuelle : « papillon » (teal/magenta = deux ailes).
-- Sémantique couleur eNPS : `≥30` teal, `0..29` gold, `<0` rouge (cf. `renderEnps`, cartes, table).
+- Typo : **Comfortaa** (display : titres + chiffres clés, arrondie, police officielle de marque) + **Inter** (corps/données, lisibilité). Métaphore visuelle : « papillon » (teal/magenta = deux ailes).
+- Sémantique couleur eNPS (valeur absolue) : `≥30` teal, `0..29` gold, `<0` rouge (cf. cartes d'évolution, `renderSnapList`, `buildEvoTable`). La pastille eNPS du classement utilise un code distinct, basé sur la **variation** (cf. `enpsBadge`).
 - ⚠️ Le **rouge détracteur `#E0533B`** est volontairement **distinct du magenta `#D11D65`** (aile chaude) pour ne pas confondre « freelance » et « détracteur ». Quelques couleurs dérivées sont codées en dur : texte de puce freelance / delta baissier = `#A01457` (magenta foncé), texte interne / delta haussier = `#0c6e67` (teal foncé).
 
 > ✅ **Palette = charte officielle Chrysalides**, extraite du kit global Elementor de https://chrysalides.me
 > (couleurs `--e-global-color-*` + typo `Comfortaa`). Pour ajuster : **modifier uniquement les valeurs `:root`**
-> (+ les 2 hex dérivés ci-dessus si besoin) — tout le reste suit. Autres couleurs de marque dispo si besoin :
+> (+ les 2 hex dérivés ci-dessus si besoin) : tout le reste suit. Autres couleurs de marque dispo si besoin :
 > turquoise vif `#3CE8D0`, indigo `#4054B2`, pêche `#FFBC7D`, navy alt `#0F2044`. Valeurs A.O.A.H
 > (Accomplissement, Originalité, Authenticité, Humanité), siège Roubaix.
 
 ---
 
-## 10. Timeline SVG — repères
+## 10. Timeline SVG : repères
 
 Générée par `buildTimeline()` (SVG inline, responsive via `viewBox="0 0 860 300"`).
 
@@ -283,7 +284,7 @@ Pour ajouter une métrique : étendre le `miniseg#tlMetric`, gérer la valeur da
 
 **Modifier un libellé de question** → `SEED.questions[].label` / `.short` (le `short` sert aux barres et cartes, le `label` complet aux verbatims).
 
-**Changer les seuils eNPS** → `enpsOf()` + légende KPI + bornes couleur (`renderEnps`, cartes compare, `buildEvoTable`).
+**Changer les seuils eNPS** → `enpsOf()` + légende KPI + bornes couleur (`enpsBadge`, cartes d'évolution, `buildEvoTable`).
 
 **Ajouter une métrique timeline** → `#tlMetric` (markup) + branche dans `buildTimeline()` + échelle Y.
 
@@ -319,7 +320,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Checklist manuelle : toggle population (dont un segment vide → doit afficher `—`/`0%`, pas `NaN`), changement de chargement, **connexion GitHub** (barre 🟢), import `.csv` + ajout (insert Appwrite), comparaison + timeline (eNPS et score, global + une question), suppression d'un chargement (connecté), état vide + restauration, export/import `.json`, **rechargement déconnecté = données toujours là** (lecture publique), responsive mobile.
+Checklist manuelle : toggle population (dont un segment vide → doit afficher `–`/`0%`, pas `NaN`), changement de chargement, **connexion GitHub** (barre 🟢), import `.csv` + ajout (insert Appwrite), comparaison + timeline (eNPS et score, global + une question), suppression d'un chargement (connecté), état vide + restauration, export/import `.json`, **rechargement déconnecté = données toujours là** (lecture publique), responsive mobile.
 
 ---
 
@@ -330,7 +331,7 @@ Checklist manuelle : toggle population (dont un segment vide → doit afficher `
 - **Export PDF/PNG** d'une vue.
 - Vraie question de **recommandation** dans le Forms → eNPS canonique dédié.
 - Filtres additionnels (ancienneté, mission, site) si le Forms s'enrichit.
-- ✅ **Multi-utilisateurs : fait** — persistance migrée vers **Appwrite** (cf. §7). Reste à faire côté sécurité (cf. §16).
+- ✅ **Multi-utilisateurs : fait**, persistance migrée vers **Appwrite** (cf. §7). Reste à faire côté sécurité (cf. §16).
 
 ---
 
@@ -342,13 +343,13 @@ Checklist manuelle : toggle population (dont un segment vide → doit afficher `
 4. **Tokens `:root`** pour tout style ; rien en dur.
 5. **`render()`** orchestre tout ; `loadFromAppwrite()` après chaque écriture.
 6. Tester en headless + checklist avant de livrer.
-7. **Écriture = connecté + autorisé** (cf. §16). Ne jamais élargir les permissions de la table au-delà de la Team d'éditeurs.
+7. **Écriture = connecté + autorisé** (cf. §16). Ne jamais élargir les permissions d'écriture au-delà des comptes autorisés (`AW_EDITORS` côté front + permission Appwrite côté serveur).
 
 ---
 
 ## 16. Sécurité (à ne pas relâcher)
 
-- **Écriture restreinte à une Team.** Le provider GitHub OAuth laisse *n'importe quel* compte GitHub se connecter → si les permissions d'écriture de `pulse_snapshots` sont `Role.users()`, n'importe qui peut insérer/supprimer. **Restreindre Create/Update/Delete à une Team d'éditeurs** (`Role.team(<id>)`), dont seul Fab (et les personnes autorisées) sont membres. La lecture reste publique (`Any`).
+- **Écriture restreinte aux comptes autorisés.** Le provider GitHub OAuth laisse *n'importe quel* compte GitHub se connecter, d'où deux verrous. (1) **Serveur** : les permissions Create/Update/Delete de `pulse_snapshots` sont limitées au(x) compte(s) éditeur (`Role.user(<id>)`, ou `Role.team(<id>)` si plusieurs éditeurs ; actuellement un seul user). (2) **Front** : la liste blanche **`AW_EDITORS`** (User IDs / e-mails) + `isEditor()` masquent les contrôles d'écriture via `applyEditorUI()`. La lecture reste publique (`Any`). Garder `AW_EDITORS` aligné avec la permission serveur.
 - **Lecture publique = données publiques.** Avec endpoint + Project ID (présents dans le source), tout le monde peut lire les verbatims via l'API. C'est assumé tant que le dashboard est public. Pour fermer : passer Read sur la Team + retirer `data/history.json` du repo public.
-- **Secrets.** Seul le **Project ID** (public) vit dans `index.html`. Le **client secret GitHub** ne vit que dans la console Appwrite — jamais dans le code ni partagé. Ne **jamais** committer de clé API serveur Appwrite.
+- **Secrets.** Seul le **Project ID** (public) vit dans `index.html`. Le **client secret GitHub** ne vit que dans la console Appwrite : jamais dans le code ni partagé. Ne **jamais** committer de clé API serveur Appwrite.
 - **Données sensibles** : CV/feedback nominatifs. Pas de logs de données perso.
