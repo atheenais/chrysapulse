@@ -25,7 +25,7 @@ Public : direction / RH de Chrysalides. Langue de l'interface et du code : **fra
 - KPI globaux : score moyen /10, eNPS global, répondants, répartition Promoteurs/Passifs/Détracteurs.
 - Classement des 10 dimensions en **format compact** (pastilles internes/freelances, barres fines, légende unique), tri dynamique selon la population active.
 - **eNPS de chaque dimension intégré au classement** : pastille à droite du score /10, colorée selon la variation vs vague précédente (vert si hausse > +5, orange si stagnation ±5, rouge pâle si baisse < -5).
-- Verbatims regroupés par question, étiquetés Interne/Freelance, retranscrits exactement (`white-space:pre-line`). **Un verbatim a été retiré sur demande** (Interne #15, Q5).
+- Verbatims regroupés par question, étiquetés Interne/Freelance, retranscrits exactement (`white-space:pre-line`).
 - Sélecteur de **population** (Tous / Internes / Freelances) : recalcule tout en direct.
 - Sélecteur de **chargement** : affiche n'importe quel snapshot historisé.
 - Section **Évolution** : comparaison actuel vs précédent, timeline SVG (métrique eNPS / score moyen × dimension Global / Q1..Q10), tableau « scores détaillés par chargement ».
