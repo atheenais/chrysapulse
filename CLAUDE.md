@@ -37,8 +37,8 @@ Public : direction / RH de Chrysalides. Langue de l'interface et du code : **fra
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | **SOURCE DE VÉRITÉ unique.** Application complète et autonome (HTML + CSS + JS inline + données seed embarquées). Sert la racine sur GitHub Pages. |
-| `data/history.json` | **Archive committée de l'historique des chargements** (= tableau brut de snapshots, exactement la sortie du bouton « Exporter l'historique »). Chargée au boot quand le dashboard est servi en http(s). Voir §7. |
+| `index.html` | **SOURCE DE VÉRITÉ unique.** Application complète (HTML + CSS + JS inline + `SEED` embarqué). Inclut la config et la couche **Appwrite** (constantes `AW_*`). Sert la racine sur GitHub Pages. |
+| `data/history.json` | **Backup / graine** de l'historique (tableau brut de snapshots = sortie du bouton « Exporter l'historique »). **N'est plus chargé au boot** (remplacé par Appwrite, voir §7) ; sert à seeder la base via « Importer un historique (.json) » et de sauvegarde. |
 | `CLAUDE.md` | Ce document. |
 | `README.md` | Présentation produit + déploiement. |
 
@@ -52,9 +52,10 @@ Le fichier est organisé en 3 blocs dans cet ordre :
 2. `<body>` … markup des sections.
 3. `<script>` … `</script>` — toute la logique. La donnée de référence est la constante **`SEED`** en haut du script.
 
-Aucune dépendance npm. Dépendances réseau **optionnelles** :
-- Google Fonts (Fraunces + Inter) — fallback `serif`/`sans-serif` si hors ligne.
-- SheetJS `https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js` — chargé **à la demande** uniquement pour l'import `.xlsx`. Le `.csv` fonctionne hors ligne.
+Aucune dépendance npm. Dépendances réseau :
+- **Appwrite Web SDK** `https://cdn.jsdelivr.net/npm/appwrite@17.0.0` — **requis pour la persistance** (lecture/écriture des chargements). Hors ligne, le dashboard retombe sur le cache `localStorage` puis sur `SEED` (affichage seulement, pas d'écriture). Voir §7.
+- Google Fonts (Fraunces + Inter) — fallback `serif`/`sans-serif` si hors ligne. *(optionnel)*
+- SheetJS `https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js` — chargé **à la demande** uniquement pour l'import `.xlsx`. Le `.csv` fonctionne hors ligne. *(optionnel)*
 
 ---
 
@@ -68,11 +69,9 @@ python3 -m http.server 8000
 # puis http://localhost:8000/index.html
 ```
 
-> Le `localStorage` fonctionne aussi en `file://` sur Chrome/Firefox, mais un petit serveur local est plus fiable
-> et représentatif du comportement réel.
->
-> ⚠️ Le **chargement de `data/history.json` au boot ne se déclenche QU'EN http(s)** (`fetch` est bloqué en
-> `file://`). Pour tester ce comportement, passe par le serveur local ci-dessus, pas par un double-clic.
+> ⚠️ **Teste toujours via le serveur local (http), pas en `file://`.** Appwrite n'autorise que les hôtes
+> déclarés comme **plateformes Web** dans le projet (`localhost` et `atheenais.github.io`) — en `file://`
+> l'origine est `null` et les appels Appwrite sont bloqués par CORS. La connexion GitHub (OAuth) exige aussi http(s).
 
 ---
 
@@ -117,6 +116,8 @@ Chaque snapshot embarque **ses propres données brutes** → tous les écrans pe
 | `SEG` | population active : `'all' | 'interne' | 'freelance'` |
 | `TLMETRIC` | métrique de la timeline : `'enps' | 'mean'` |
 | `Q`, `R` | raccourcis vers `questions` / `respondents` du snapshot courant, posés par `bind()` |
+| `aw`, `awAccount`, `awDB` | client Appwrite + services (initialisés paresseusement par `awReady()`) |
+| `USER` | utilisateur connecté (`account.get()`) ou `null` ; pilote la barre d'auth et `requireLogin()` |
 
 ### 5.4 Flux de rendu
 
@@ -133,12 +134,15 @@ Toujours **passer par `render()`** après une mutation de `HISTORY`/`CURID`/`SEG
 ```
 Données/calcul : enpsOf, meanOf, qScores, qAvg, qEnps, allScores, allScoresSeg, statsFor, pop
 Historique     : loadHistory, saveHistory, seedSnap, sortHistory, initHistory, curSnap, prevOf, bind
+Appwrite/data  : awReady, snapToRow, rowToSnap, loadFromAppwrite, awCreateSnap, awDeleteSnap, awDeleteAll, awSeed
+Auth GitHub    : isLogged, refreshUser, handleOAuthReturn, loginGitHub, logout, requireLogin, renderAuth
 Rendu          : render, renderDims, barRow, renderEnps, renderVerbatims, renderEvolution,
                  buildTimelineSelect, buildTimeline, buildEvoTable, buildSnapSelect, renderSnapList, showEmpty
 Deltas/affich. : deltaHtml, dcell, roleFR, fr1, escapeHtml, cap, norm, uid
 Import         : handleFile, parseCSV, rowsToRespondents, aoaToRespondents, loadSheetJS, showImportForm
 Câblage UI     : wire
-Boot           : initHistory(); buildSnapSelect(); wire(); render();
+Boot           : initHistory(); buildSnapSelect(); wire(); render(); renderAuth();
+                 puis (async) handleOAuthReturn → refreshUser → renderAuth → loadFromAppwrite → render
 ```
 
 ---
@@ -159,32 +163,38 @@ Implémenté dans `enpsOf(array)`. Toute modification des seuils doit l'être **
 
 ---
 
-## 7. Persistance & historique
+## 7. Persistance & historique — Appwrite
 
-- Clé localStorage : **`chrysalides_pulse_history_v1`**.
-- `initHistory()` : charge l'historique depuis localStorage ; si vide/absent → seed `Juin 2026` (`seedSnap()`, **id stable `snap_seed_juin_2026`**, date `2026-06-22`) à partir de `SEED`.
-- Sauvegarde via `saveHistory()` après **toute** mutation.
-- Le `localStorage` est **propre au navigateur** → d'où l'archive committée + l'**Export/Import `.json`** pour la portabilité.
+**Source de vérité = base Appwrite** (partagée entre tous les appareils). `localStorage` n'est plus qu'un **cache hors-ligne**, `SEED` un filet de dernier recours.
 
-### Archive committée `data/history.json` ↔ boot-sync (depuis v repo GitHub)
+### Backend Appwrite (Cloud, région `fra`)
+Constantes en tête du `<script>` (`index.html`) :
+```
+AW_ENDPOINT = 'https://fra.cloud.appwrite.io/v1'
+AW_PROJECT  = '6a3d2314000e362641e2'
+AW_DB       = '6a3d3aed003676b53dfb'   // Database ID (auto-généré ; le nom est "chrysapulse")
+AW_TABLE    = 'pulse_snapshots'        // Table/Collection ID
+```
+- **SDK 17** : le global CDN expose **`Appwrite.Databases`** (API classique, **pas** `TablesDB`), méthodes **positionnelles** : `listDocuments(db, col, queries)`, `createDocument(db, col, id, data)`, `deleteDocument(db, col, id)`. Auth : `account.get()`, `createOAuth2Token(provider, success, failure)` (qui **redirige** le navigateur en SDK web), `createSession(userId, secret)`, `deleteSession('current')`.
+- **Modèle ligne** : 1 row = 1 snapshot. Colonnes `date` (string), `label` (string), `payload` (**longtext** = JSON `{questions, respondents}`). Le **`$id` de la row = l'id du snapshot** (`snap_seed_juin_2026`, ou `uid()`). `snapToRow()` / `rowToSnap()` font la conversion.
+- **Permissions** (niveau table, Row Security OFF) : Read = `Any` (lecture publique) ; Create/Update/Delete = utilisateurs autorisés. ⚠️ **Restreindre l'écriture à une Team** (voir §sécurité) — `Role.users()` laisserait écrire n'importe quel compte GitHub.
 
-- `data/history.json` = **tableau brut de snapshots**, exactement le format produit par le bouton « Exporter l'historique » (qui télécharge désormais un fichier nommé `history.json`).
-- `syncFromFile()` s'exécute **après** `initHistory()`, **uniquement si la page est servie en `http(s)`** (`fetch` est bloqué en `file://`). Elle :
-  1. `fetch('data/history.json')` ;
-  2. **fusionne par `id`** : le fichier fait foi, les snapshots **purement locaux** (présents en localStorage mais absents du fichier — ex. un import non encore committé) sont **conservés et ajoutés** ;
-  3. `saveHistory()` + re-render.
-- **Conséquence voulue** : committer un nouveau `history.json` propage le chargement à **tous les appareils** au prochain rafraîchissement. Supprimer localement un snapshot présent dans le fichier le **réaffiche** au boot suivant (le fichier est la source de vérité). Pour retirer définitivement un chargement, l'enlever **du fichier** et re-committer.
-- **Id stable du seed** = indispensable : sans lui, chaque navigateur générerait un id aléatoire pour « Juin 2026 » et la fusion créerait des doublons.
-- ⚠️ **Migration ponctuelle** : un navigateur qui a déjà un seed « Juin 2026 » avec un **ancien id aléatoire** (avant cette version) verra transitoirement un doublon de Juin après déploiement → cliquer une fois sur **« Réinitialiser »**, ou supprimer le doublon, suffit à réaligner.
+### Auth — GitHub OAuth (flux token, cross-domaine)
+1. `loginGitHub()` → `createOAuth2Token(Github, here, here)` redirige vers GitHub.
+2. Retour sur la page avec `?userId&secret` → `handleOAuthReturn()` appelle `createSession(userId, secret)` puis nettoie l'URL.
+3. Le provider GitHub doit être **activé** dans Auth → Providers (App ID + secret d'une *GitHub OAuth App*, callback = celui affiché par Appwrite). Les hôtes `localhost` + `atheenais.github.io` doivent être déclarés comme **plateformes Web**.
+
+### Flux de chargement / écriture
+- **Boot** : `initHistory()` peint le cache local instantanément, puis `loadFromAppwrite()` (lecture anon) **écrase** `HISTORY` avec la base (autoritaire) et met à jour le cache. Échec réseau → on garde le cache.
+- **Écritures** (toutes derrière `requireLogin()`) : import d'une vague → `createDocument` ; suppression → `deleteDocument` ; réinitialiser → `awDeleteAll()` + `awSeed()`. Après chaque écriture → `loadFromAppwrite()` + `render()`.
 
 ### Workflow « ajouter un chargement de résultats »
+1. Se **connecter** (GitHub) dans le dashboard.
+2. **Importer** l'export Forms (`.xlsx`/`.csv`) → renseigner date + libellé → « Ajouter à l'historique » (insert Appwrite).
+3. Tous les appareils voient la vague au prochain rafraîchissement (lecture publique). Pas de commit/push nécessaire — la donnée vit dans Appwrite, plus dans le repo.
+4. `data/history.json` reste une **sauvegarde** (bouton « Exporter l'historique ») et la **graine** initiale (« Importer un historique (.json) » quand la base est vide).
 
-1. Dans le dashboard hébergé (ou en local), **importer** le nouvel export Forms (`.xlsx`/`.csv`) → renseigner date + libellé.
-2. Cliquer **« Exporter l'historique (.json) »** → récupère `history.json`.
-3. Remplacer `data/history.json` du repo par ce fichier, **committer & pousser**.
-4. Au prochain rafraîchissement, tous les appareils voient le nouveau chargement.
-
-- En cas de changement de schéma de snapshot incompatible, **incrémenter la version de la clé** (`…_v2`) et prévoir une migration.
+> Clé localStorage (cache) : **`chrysalides_pulse_history_v1`**. En cas de changement de schéma snapshot incompatible, incrémenter la version de la clé. Le seed garde l'**id stable `snap_seed_juin_2026`** (évite les doublons à l'import).
 
 ---
 
@@ -297,7 +307,7 @@ async def main():
         b = await p.chromium.launch()
         pg = await (await b.new_context()).new_page()
         errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
-        await pg.goto("http://localhost:8000/index.html")  # http requis pour tester syncFromFile
+        await pg.goto("http://localhost:8000/index.html")  # http obligatoire (CORS Appwrite + OAuth)
         await pg.wait_for_timeout(800)
         rows = await pg.eval_on_selector_all(".dims .row", "e=>e.length")
         fills = await pg.eval_on_selector_all(".dims .fill",
@@ -307,7 +317,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Checklist manuelle : toggle population, changement de chargement, import `.csv`, comparaison + timeline (eNPS et score, global + une question), suppression d'un chargement, état vide + restauration, export/import `.json`, rechargement de page (persistance), responsive mobile.
+Checklist manuelle : toggle population (dont un segment vide → doit afficher `—`/`0%`, pas `NaN`), changement de chargement, **connexion GitHub** (barre 🟢), import `.csv` + ajout (insert Appwrite), comparaison + timeline (eNPS et score, global + une question), suppression d'un chargement (connecté), état vide + restauration, export/import `.json`, **rechargement déconnecté = données toujours là** (lecture publique), responsive mobile.
 
 ---
 
@@ -318,15 +328,25 @@ Checklist manuelle : toggle population, changement de chargement, import `.csv`,
 - **Export PDF/PNG** d'une vue.
 - Vraie question de **recommandation** dans le Forms → eNPS canonique dédié.
 - Filtres additionnels (ancienneté, mission, site) si le Forms s'enrichit.
-- **Multi-utilisateurs** (évolution probable) : si l'historique doit être partagé entre plusieurs personnes/machines, migrer la persistance de `localStorage` vers **Supabase** (table `snapshots` en JSONB), en gardant GitHub Pages pour l'hébergement statique. Conserver l'export/import `.json` comme passerelle de migration.
+- ✅ **Multi-utilisateurs : fait** — persistance migrée vers **Appwrite** (cf. §7). Reste à faire côté sécurité (cf. §16).
 
 ---
 
 ## 15. Règles d'or
 
-1. **Un seul fichier HTML autonome** : pas de build, pas de dépendance obligatoire en ligne.
+1. **Un seul fichier HTML** : pas de build, pas de npm. (L'autonomie « 100 % hors-ligne » a été assouplie : Appwrite est désormais **requis pour la persistance** ; le `SEED` + cache `localStorage` assurent un affichage de repli hors-ligne.)
 2. **Lisibilité d'abord** (public direction/RH).
 3. **Verbatims intouchables**, **données honnêtes** (échelles, eNPS).
 4. **Tokens `:root`** pour tout style ; rien en dur.
-5. **`render()`** orchestre tout ; sauvegarde après chaque mutation.
+5. **`render()`** orchestre tout ; `loadFromAppwrite()` après chaque écriture.
 6. Tester en headless + checklist avant de livrer.
+7. **Écriture = connecté + autorisé** (cf. §16). Ne jamais élargir les permissions de la table au-delà de la Team d'éditeurs.
+
+---
+
+## 16. Sécurité (à ne pas relâcher)
+
+- **Écriture restreinte à une Team.** Le provider GitHub OAuth laisse *n'importe quel* compte GitHub se connecter → si les permissions d'écriture de `pulse_snapshots` sont `Role.users()`, n'importe qui peut insérer/supprimer. **Restreindre Create/Update/Delete à une Team d'éditeurs** (`Role.team(<id>)`), dont seul Fab (et les personnes autorisées) sont membres. La lecture reste publique (`Any`).
+- **Lecture publique = données publiques.** Avec endpoint + Project ID (présents dans le source), tout le monde peut lire les verbatims via l'API. C'est assumé tant que le dashboard est public. Pour fermer : passer Read sur la Team + retirer `data/history.json` du repo public.
+- **Secrets.** Seul le **Project ID** (public) vit dans `index.html`. Le **client secret GitHub** ne vit que dans la console Appwrite — jamais dans le code ni partagé. Ne **jamais** committer de clé API serveur Appwrite.
+- **Données sensibles** : CV/feedback nominatifs. Pas de logs de données perso.

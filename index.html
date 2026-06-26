@@ -290,7 +290,6 @@ footer .bf{font-family:'Fraunces',serif;color:var(--encre)}
   <section class="dataSec">
     <div class="section-head">
       <h2>Verbatims</h2>
-      <span class="num" id="vTagUnused"></span>
       <span class="hint">Commentaires facultatifs, retranscrits mot pour mot</span>
     </div>
     <div id="verbatims-host"></div>
@@ -507,7 +506,7 @@ function deltaHtml(cur,prev,suffix){
   if(cur==null||prev==null)return '<span class="delta flat">—</span>';
   const d=Math.round((cur-prev)*(suffix==='/10'?10:1))/(suffix==='/10'?10:1);
   if(Math.abs(d)<(suffix==='/10'?0.05:0.5))return '<span class="delta flat">= stable</span>';
-  const up=d>0;const txt=(up?'▲ +':'▼ ')+(suffix==='/10'?Math.abs(d).toFixed(1).replace('.',','):Math.abs(d));
+  const up=d>0;
   return `<span class="delta ${up?'up':'down'}">${up?'▲ +':'▼ −'}${suffix==='/10'?Math.abs(d).toFixed(1).replace('.',','):Math.abs(d)}</span>`;
 }
 function dcell(cur,prev,suffix){
@@ -533,15 +532,17 @@ function render(){
   document.getElementById('ovHint').textContent='10 dimensions notées de 0 à 10';
 
   const sc=allScores(seg), mean=meanOf(sc);
+  const gm=meanOf(allScoresSeg('all'));
   document.getElementById('kScore').textContent=fr1(mean);
   document.getElementById('kScoreMeta').textContent= seg==='all'
     ? 'Internes '+fr1(meanOf(allScoresSeg('interne')))+' · Freelances '+fr1(meanOf(allScoresSeg('freelance')))
-    : ((mean-meanOf(allScoresSeg('all')))>=0?'+':'−')+Math.abs(mean-meanOf(allScoresSeg('all'))).toFixed(1).replace('.',',')+' vs moyenne globale';
+    : (mean==null||gm==null) ? '—'
+    : ((mean-gm)>=0?'+':'−')+Math.abs(mean-gm).toFixed(1).replace('.',',')+' vs moyenne globale';
 
   const p=sc.filter(v=>v>=9).length,pa=sc.filter(v=>v>=7&&v<=8).length,d=sc.filter(v=>v<=6).length,n=sc.length;
   const enps=enpsOf(sc),eEl=document.getElementById('kEnps');
-  eEl.textContent=(enps>=0?'+':'')+enps;
-  eEl.style.color=enps>=30?'var(--teal)':(enps>=0?'var(--gold)':'var(--rouge)');
+  eEl.textContent= enps==null?'—':(enps>=0?'+':'')+enps;
+  eEl.style.color= enps==null?'var(--ardoise)':enps>=30?'var(--teal)':(enps>=0?'var(--gold)':'var(--rouge)');
   // delta vs previous load on global eNPS
   const prev=prevOf(snap);
   if(prev){const pe=statsFor(prev,seg).enps;document.getElementById('kEnpsMeta').innerHTML='vs '+prev.label+' : '+deltaHtml(enps,pe);}
@@ -551,12 +552,13 @@ function render(){
   document.getElementById('kRespMeta').textContent= seg==='all'
     ? R.filter(r=>r.role==='interne').length+' internes · '+R.filter(r=>r.role==='freelance').length+' freelances'
     : n+' notes exprimées';
-  document.getElementById('spP').style.width=(100*p/n)+'%';
-  document.getElementById('spPa').style.width=(100*pa/n)+'%';
-  document.getElementById('spD').style.width=(100*d/n)+'%';
-  document.getElementById('lP').textContent=Math.round(100*p/n)+'%';
-  document.getElementById('lPa').textContent=Math.round(100*pa/n)+'%';
-  document.getElementById('lD').textContent=Math.round(100*d/n)+'%';
+  const pct=x=>n?Math.round(100*x/n):0, wd=x=>n?(100*x/n):0;
+  document.getElementById('spP').style.width=wd(p)+'%';
+  document.getElementById('spPa').style.width=wd(pa)+'%';
+  document.getElementById('spD').style.width=wd(d)+'%';
+  document.getElementById('lP').textContent=pct(p)+'%';
+  document.getElementById('lPa').textContent=pct(pa)+'%';
+  document.getElementById('lD').textContent=pct(d)+'%';
 
   renderDims(seg);renderEnps(seg);renderVerbatims(seg);
   renderEvolution();
@@ -677,7 +679,8 @@ function buildTimeline(){
     dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#fff" stroke="${col}" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y-12).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${col}">${metric==='enps'?(d.v>=0?'+':'')+d.v:fr1(d.v)}</text>`;
   });
   const line=n>1?`<path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:'';
-  host.innerHTML=`<svg class="tl-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img">${grid}${line}${dots}${xlabels}</svg>`;
+  const aria='Évolution '+(metric==='enps'?'eNPS':'score moyen /10')+(dim==='global'?' global':' · Q'+dim)+' au fil des '+data.length+' chargements';
+  host.innerHTML=`<svg class="tl-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${escapeHtml(aria)}">${grid}${line}${dots}${xlabels}</svg>`;
 }
 
 function buildEvoTable(){

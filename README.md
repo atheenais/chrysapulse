@@ -9,32 +9,32 @@ Public : direction / RH de Chrysalides.
 
 ## Application
 
-Une **page HTML autonome** : [`index.html`](index.html) — HTML + CSS + JS inline, données seed
+Une **page HTML unique** : [`index.html`](index.html) — HTML + CSS + JS inline, données seed
 embarquées. Aucun framework, aucun build, aucune dépendance npm.
 
-Dépendances réseau **optionnelles** (l'app fonctionne sans) :
+Dépendances réseau :
 
-- Google Fonts (Fraunces + Inter) — fallback `serif`/`sans-serif` hors ligne ;
-- SheetJS via CDN — chargé **à la demande** uniquement pour l'import `.xlsx` (le `.csv` marche hors ligne).
+- **Appwrite Web SDK** (CDN) — **requis pour la persistance** (lecture/écriture des chargements + connexion GitHub). Hors ligne, l'app retombe sur le cache `localStorage` puis le seed embarqué (affichage seul) ;
+- Google Fonts (Fraunces + Inter) — fallback `serif`/`sans-serif` hors ligne *(optionnel)* ;
+- SheetJS via CDN — chargé **à la demande** uniquement pour l'import `.xlsx` (le `.csv` marche hors ligne) *(optionnel)*.
 
-## Historique des chargements
+## Historique des chargements — Appwrite
 
-L'historique des vagues d'enquête vit à deux endroits :
+Les vagues d'enquête sont stockées dans une base **Appwrite** (Cloud, région `fra`), **partagée entre
+tous les appareils**. La **consultation est publique** ; **importer ou supprimer** une vague nécessite
+de se **connecter avec GitHub**. Le `localStorage` du navigateur sert de cache hors-ligne, et le `SEED`
+embarqué de filet de secours.
 
-- **`data/history.json`** — archive committée dans le repo, source de vérité partagée entre
-  appareils. C'est exactement la sortie du bouton « Exporter l'historique » du dashboard.
-- **`localStorage`** du navigateur — état de travail local.
-
-Quand le dashboard est **servi en http(s)** (GitHub Pages, serveur local), il charge
-`data/history.json` au démarrage et le fusionne avec le local. En `file://`, il retombe sur le
-seed embarqué + localStorage (le `fetch` étant bloqué par le navigateur).
+- **`data/history.json`** — n'est plus la source de vérité : c'est une **sauvegarde** (bouton
+  « Exporter l'historique ») et la **graine** pour initialiser une base vide (« Importer un historique »).
 
 ### Ajouter une vague de résultats
 
-1. Dans le dashboard, **importer** l'export Microsoft Forms (`.xlsx`/`.csv`), renseigner date + libellé.
-2. Cliquer **« Exporter l'historique (.json) »** → télécharge `history.json`.
-3. Remplacer `data/history.json` par ce fichier, **commit + push**.
-4. Au prochain rafraîchissement, tous les appareils voient la nouvelle vague.
+1. Se **connecter** (GitHub) dans le dashboard.
+2. **Importer** l'export Microsoft Forms (`.xlsx`/`.csv`), renseigner date + libellé → « Ajouter à l'historique ».
+3. C'est écrit dans Appwrite ; **tous les appareils** voient la vague au rafraîchissement. Pas de commit/push.
+
+> Détails techniques (IDs, schéma, permissions, flux OAuth) : voir [`CLAUDE.md`](CLAUDE.md) §7 et §16.
 
 ## Lancer en local
 
@@ -43,17 +43,20 @@ python3 -m http.server 8000
 # http://localhost:8000/index.html
 ```
 
-Ouvrir `index.html` en double-clic (`file://`) fonctionne aussi, mais **sans** le chargement
-auto de `data/history.json` (passer par le serveur local pour le tester).
+⚠️ **Ne pas ouvrir en `file://`** : Appwrite n'autorise que les hôtes déclarés (`localhost`,
+`atheenais.github.io`) — en `file://` les appels sont bloqués par CORS et l'OAuth ne fonctionne pas.
+Toujours passer par le serveur local ci-dessus.
 
 ## Déploiement
 
 Hébergé sur **GitHub Pages** : tout commit sur `main` est publié tel quel, pas d'étape de build.
-URL : `https://atheenais.github.io/chrysapulse/`.
+URL : `https://atheenais.github.io/chrysapulse/`. L'hôte `atheenais.github.io` doit rester déclaré
+comme plateforme Web dans le projet Appwrite.
 
-> ⚠️ **Données sensibles.** Les verbatims contiennent du feedback nominatif de collaborateurs.
-> Ce dépôt étant public, ces verbatims sont publiquement lisibles. À garder en tête avant de
-> committer de nouvelles vagues.
+> ⚠️ **Données sensibles & accès.** Les verbatims sont du feedback **nominatif** de collaborateurs.
+> La lecture Appwrite étant publique (et le dépôt public), ils sont lisibles par tous. L'**écriture**
+> doit être restreinte à une **Team d'éditeurs** dans Appwrite — sinon n'importe quel compte GitHub
+> connecté peut modifier/supprimer les données (voir [`CLAUDE.md`](CLAUDE.md) §16).
 
 ## Documentation technique
 
