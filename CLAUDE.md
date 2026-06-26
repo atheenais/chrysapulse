@@ -229,21 +229,23 @@ Structure Forms attendue (ordre indicatif, le mapping est tolérant à l'ordre) 
 Tous les tokens sont dans `:root` (haut du `<style>`). **Ne jamais coder une couleur en dur** : utiliser les variables.
 
 ```css
---corail:#F25C3B;  --corail-soft:#FBE3DB;   /* aile chaude / freelances */
---teal:#129B92;    --teal-soft:#D6EFEC;     /* aile froide / internes */
---gold:#F4A93B;                              /* accent / valeurs moyennes */
---encre:#1E2A32;   --ardoise:#5A6B75;        /* textes */
+--corail:#D11D65;  --corail-soft:#F7D9E4;   /* aile chaude / freelances (magenta de marque) */
+--teal:#13AB91;    --teal-soft:#D6F0EA;     /* aile froide / internes */
+--gold:#F5C842;                              /* accent / valeurs moyennes */
+--encre:#091628;   --ardoise:#6E7E9E;        /* textes (bleu nuit / périer) */
 --ligne:#E7E1D8;   --fond:#FBF8F4;  --carte:#FFFFFF;
---vert/--jaune/--rouge                       /* promoteurs / passifs / détracteurs */
+--vert:#23A455; --jaune:#F5C842; --rouge:#E0533B;  /* promoteurs / passifs / détracteurs */
 --r:18px;  --shadow:…                         /* rayon, ombre */
 ```
 
-- Typo : **Fraunces** (display, titres/chiffres) + **Inter** (corps/données). Métaphore visuelle : « papillon » (teal/corail = deux ailes).
+- Typo : **Comfortaa** (display — titres + chiffres clés, arrondie, police officielle de marque) + **Inter** (corps/données, lisibilité). Métaphore visuelle : « papillon » (teal/magenta = deux ailes).
 - Sémantique couleur eNPS : `≥30` teal, `0..29` gold, `<0` rouge (cf. `renderEnps`, cartes, table).
+- ⚠️ Le **rouge détracteur `#E0533B`** est volontairement **distinct du magenta `#D11D65`** (aile chaude) pour ne pas confondre « freelance » et « détracteur ». Quelques couleurs dérivées sont codées en dur : texte de puce freelance / delta baissier = `#A01457` (magenta foncé), texte interne / delta haussier = `#0c6e67` (teal foncé).
 
-> ⚠️ **La palette est une interprétation fidèle de l'identité Chrysalides, pas les hex officiels exacts**
-> (le logo n'a pas pu être lu automatiquement). Si Fab fournit la charte exacte, **remplacer uniquement les
-> valeurs `:root`** : tout le reste suit. Référence marque : https://chrysalides.me — valeurs A.O.A.H
+> ✅ **Palette = charte officielle Chrysalides**, extraite du kit global Elementor de https://chrysalides.me
+> (couleurs `--e-global-color-*` + typo `Comfortaa`). Pour ajuster : **modifier uniquement les valeurs `:root`**
+> (+ les 2 hex dérivés ci-dessus si besoin) — tout le reste suit. Autres couleurs de marque dispo si besoin :
+> turquoise vif `#3CE8D0`, indigo `#4054B2`, pêche `#FFBC7D`, navy alt `#0F2044`. Valeurs A.O.A.H
 > (Accomplissement, Originalité, Authenticité, Humanité), siège Roubaix.
 
 ---
