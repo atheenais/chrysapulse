@@ -5,6 +5,11 @@ de [Chrysalides](https://chrysalides.me). Vue fusionnée internes + freelances, 
 avec historisation des chargements dans le temps et visualisation de l'évolution (eNPS, scores,
 timeline datée).
 
+Le dashboard couvre : KPI globaux (score moyen, eNPS, répartition), classement des 10 dimensions
+en format compact avec **eNPS et tendance par dimension**, verbatims mot pour mot, section
+**Évolution** (comparaison vs vague précédente et timeline), et une rubrique **« Pistes d'action »**
+proposant un plan à 6 mois déduit des résultats, tendances et verbatims.
+
 Public : direction / RH de Chrysalides.
 
 ## Application
